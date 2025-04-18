@@ -5,15 +5,16 @@ import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 import { Line } from '@react-three/drei';
 
-function Stars({ count = 200 }) {
+function Stars({ count = 1500, spread = 3000 }) {
   const mesh = React.useRef();
   const positions = React.useMemo(() => {
     const arr = [];
     for (let i = 0; i < count; i++) {
-      arr.push((Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, -10);
+      // Répartition sur un grand carré centré (spread = largeur totale, donc -spread/2 à +spread/2)
+      arr.push((Math.random() - 0.5) * spread, (Math.random() - 0.5) * spread, -10);
     }
     return new Float32Array(arr);
-  }, [count]);
+  }, [count, spread]);
   return (
     <points ref={mesh}>
       <bufferGeometry>
@@ -426,16 +427,29 @@ function generateAsteroidInnerSystem() {
     pos: [px, py],
     vel: [vx, vy],
     color: colors[idx],
-    trailColor: colors[(idx*3+2) % colors.length]
+    trailColor: colors[(idx*3+2) % colors.length],
+    destroyed: false // <-- Correction : toujours false à la création
   };
 }
 
 function generateAsteroids(n = 20) {
   const arr = [];
   for (let i = 0; i < n; ++i) {
-    // Pour éviter l’alignement avec les planètes, décale l’angle de départ de chaque astéroïde
-    const angle = Math.random() * Math.PI * 2 + (i * Math.PI * 2 / n) * 0.35; // déphasage supplémentaire
-    const radius = 20 + Math.random() * 210; // Réparti sur tout le système solaire (jusqu’à Neptune)
+    // Angle de départ dispersé
+    const angle = Math.random() * Math.PI * 2 + (i * Math.PI * 2 / n) * 0.35;
+    // Nouvelle répartition : 5% ceinture intérieure (20-60), 60% ceinture principale (80-350), 35% transneptuniens (400-1250)
+    let radius;
+    const p = Math.random();
+    if (p < 0.05) {
+      // Ceinture intérieure (près de Mars)
+      radius = 20 + Math.random() * 40;
+    } else if (p < 0.65) {
+      // Ceinture principale (entre Mars et Jupiter, jusqu’à Saturne)
+      radius = 80 + Math.random() * 270; // 80 à 350
+    } else {
+      // Astéroïdes lointains (au-delà de Saturne)
+      radius = 400 + Math.random() * 850; // 400 à 1250 (jusqu’à Neptune)
+    }
     const px = Math.cos(angle) * radius;
     const py = Math.sin(angle) * radius;
     // Vitesse tangentielle circulaire
@@ -449,7 +463,8 @@ function generateAsteroids(n = 20) {
       pos: [px, py],
       vel: [vx, vy],
       color: colors[idx],
-      trailColor: colors[(idx*3+2) % colors.length]
+      trailColor: colors[(idx*3+2) % colors.length],
+      destroyed: false // <-- Correction : toujours false à la création
     });
   }
   return arr;
@@ -491,11 +506,9 @@ function RealAsteroid({ a, e, phi, color, trailColor, t, name, systemRadius = 30
   );
 }
 
-function SolarSystem({ zoom, showLabels, timeSpeed, paused }) {
+function SolarSystemView({ zoom, showLabels, timeSpeed, paused, asteroids, setAsteroids }) {
   const [time, setTime] = React.useState(0);
-  const [asteroids, setAsteroids] = React.useState(() => generateAsteroids());
   const [explosions, setExplosions] = React.useState([]);
-  // Générer une phase aléatoire pour chaque planète et lune au montage
   const planets = React.useMemo(() => {
     return BASE_PLANETS.map(p => ({
       ...p,
@@ -504,16 +517,14 @@ function SolarSystem({ zoom, showLabels, timeSpeed, paused }) {
     }));
   }, []);
   useFrame((_, delta) => {
-    if (!paused) setTime(t => t + delta * 2 * timeSpeed);
+    if (!paused) setTime(t => t + delta * timeSpeed);
   });
-  // Calcul de la position courante de chaque planète/lune
   const planetsWithPos = React.useMemo(() => {
     const result = planets.map(p => {
       const angle = p.speed * time + p.phase;
       const ecc = p.ecc || 0;
       const a = p.orbit;
-      // Centre du système = (0,0)
-      const [x, y] = getEllipsePosition(0, 0, a, ecc, p.phase, angle - p.phase);
+      const [x, y] = getEllipsePosition(0, 0, a, ecc, p.phase || 0, angle - p.phase);
       let moons = [];
       if (p.moons) {
         moons = p.moons.map((moon, i) => {
@@ -526,13 +537,11 @@ function SolarSystem({ zoom, showLabels, timeSpeed, paused }) {
       }
       return { ...p, x, y, time, moons, ecc: p.ecc };
     });
-    // Mettre à jour les positions des planètes et lunes à chaque frame
     result.forEach(p => {
       const angle = p.speed * time + p.phase;
       const ecc = p.ecc || 0;
       const a = p.orbit;
-      // Centre du système = (0,0)
-      const [x, y] = getEllipsePosition(0, 0, a, ecc, p.phase, angle - p.phase);
+      const [x, y] = getEllipsePosition(0, 0, a, ecc, p.phase || 0, angle - p.phase);
       p.x = x;
       p.y = y;
       if (p.moons) {
@@ -548,77 +557,42 @@ function SolarSystem({ zoom, showLabels, timeSpeed, paused }) {
     });
     return result;
   }, [planets, time]);
-
-  // Opacité des labels
   const labelOpacity = Math.max(0, Math.min(1, (zoom - 0.35) / 0.65));
-  function handleAsteroidEscape(idx) {
-    setAsteroids(asts => {
-      const newAst = generateAsteroidInnerSystem(); // Nouveau astéroïde près du Soleil
-      const arr = [...asts];
-      arr[idx] = newAst;
-      return arr;
-    });
-  }
+
+  // Nouvelle gestion : callbacks pour signaler une explosion ou une sortie d’astéroïde
   function handleAsteroidExplode(idx, pos, color) {
     setExplosions(expls => [...expls, { pos, color, id: Math.random() }]);
     setAsteroids(asts => {
-      const newAst = generateAsteroidInnerSystem();
       const arr = [...asts];
-      arr[idx] = newAst;
+      arr[idx] = { ...arr[idx], destroyed: true };
       return arr;
     });
   }
-  function removeExplosion(id) {
-    setExplosions(expls => expls.filter(e => e.id !== id));
+  function handleAsteroidEscape(idx) {
+    setAsteroids(asts => {
+      const arr = [...asts];
+      arr[idx] = { ...arr[idx], destroyed: true };
+      return arr;
+    });
   }
+
   return (
     <>
-      {/* Menu principal/options */}
-      <Html position={[-120, 120, 0]} center style={{ pointerEvents: 'auto', zIndex: 10 }}>
-        <div style={{
-          background: 'rgba(30,30,30,0.92)',
-          borderRadius: 12,
-          padding: '18px 30px 14px 30px',
-          boxShadow: '0 2px 12px #0008',
-          display: 'inline-block',
-          minWidth: 180,
-          color: '#fff',
-          fontSize: '1.12rem',
-          fontFamily: 'inherit',
-          userSelect: 'none'
-        }}>
-          <div style={{ fontWeight: 'bold', marginBottom: 8, fontSize: '1.2rem', letterSpacing: 1 }}>Options</div>
-          {/* Autres options existantes ici si besoin */}
-          <div style={{ marginBottom: 10 }}>
-            <span style={{ marginRight: 10 }}>Astéroïdes dynamiques :</span>
-            <button onClick={() => setAsteroids(asts => [...asts, generateAsteroidInnerSystem()])} style={{ fontSize: '1.3rem', margin: '0 4px', borderRadius: 7, border: 'none', background: '#2a2', color: '#fff', width: 32, height: 32, cursor: 'pointer' }}>+</button>
-            <button onClick={() => setAsteroids(asts => asts.length > 0 ? asts.slice(0, -1) : asts)} style={{ fontSize: '1.3rem', margin: '0 4px', borderRadius: 7, border: 'none', background: '#a22', color: '#fff', width: 32, height: 32, cursor: 'pointer' }}>-</button>
-            <span style={{ marginLeft: 10, fontSize: '1.1rem' }}>{asteroids.length}</span>
-          </div>
-          {/* Place ici les autres contrôles du menu selon besoins */}
-        </div>
-      </Html>
-      {/* Soleil + halo */}
       <SunGlow />
       <mesh position={[0, 0, 0]}>
         <circleGeometry args={[4, 64]} />
         <meshBasicMaterial color="#ffe066" />
       </mesh>
-      {/* Orbites et planètes */}
       {planetsWithPos.map((p) => (
         <React.Fragment key={p.name}>
           <Orbit cx={0} cy={0} radius={p.orbit} ecc={p.ecc} phase={p.phase} />
-          <Planet {...p} time={time} label={p.name} labelOpacity={labelOpacity} showLabels={showLabels} ecc={p.ecc} />
+          <Planet {...p} time={time} label={p.name} labelOpacity={labelOpacity} showLabels={showLabels} />
         </React.Fragment>
       ))}
-      {/* Astéroïdes réels en orbite elliptique */}
-      {REAL_ASTEROIDS.map((ast, i) => (
-        <RealAsteroid key={ast.name} {...ast} t={time} labelOpacity={labelOpacity} />
-      ))}
-      {/* Astéroïdes dynamiques influencés par la gravité (arcade) */}
-      {asteroids.map((ast, i) => (
+      {/* Astéroïdes dynamiques */}
+      {asteroids.map((ast, idx) => !ast.destroyed && (
         <Asteroid
-          key={i}
+          key={idx}
           initial={ast}
           color={ast.color}
           trailColor={ast.trailColor}
@@ -626,14 +600,18 @@ function SolarSystem({ zoom, showLabels, timeSpeed, paused }) {
           timeSpeed={timeSpeed}
           paused={paused}
           labelOpacity={labelOpacity}
-          systemRadius={1300}
-          onEscape={() => handleAsteroidEscape(i)}
-          onExplode={(pos, color) => handleAsteroidExplode(i, pos, color)}
+          name={null}
+          onEscape={() => handleAsteroidEscape(idx)}
+          onExplode={(pos, color) => handleAsteroidExplode(idx, pos, color)}
         />
       ))}
-      {/* Effets d'explosion */}
+      {/* Astéroïdes réels */}
+      {REAL_ASTEROIDS.map((ast, idx) => (
+        <RealAsteroid key={ast.name || idx} {...ast} t={time} />
+      ))}
+      {/* Explosions */}
       {explosions.map(e => (
-        <Explosion key={e.id} position={e.pos} color={e.color} onEnd={() => removeExplosion(e.id)} />
+        <Explosion key={e.id} position={e.pos} color={e.color} onEnd={() => {}} />
       ))}
     </>
   );
@@ -659,84 +637,6 @@ const REAL_ASTEROIDS = [
 const MIN_ZOOM = 0.002; // permet de dézoomer jusqu'à voir tout le système solaire même sur petit écran
 const MAX_ZOOM = 6;
 
-// --- Indicateur directionnel pour planètes hors champ (rendu DOM hors <Canvas>) ---
-function PlanetDirectionIndicator({ planet, cameraCenter, zoom, color }) {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  const aspect = w / h;
-  const viewWidth = 80 * zoom;
-  const viewHeight = 80 * zoom;
-  // Position planète en coordonnées écran
-  const screenX = ((planet.x - cameraCenter.x) / (viewWidth * aspect) + 0.5) * w;
-  const screenY = (0.5 - (planet.y - cameraCenter.y) / viewHeight) * h;
-  // Si dans l'écran, pas d'indicateur
-  if (screenX >= 0 && screenX <= w && screenY >= 0 && screenY <= h) return null;
-  // Centre écran
-  const cx = w / 2, cy = h / 2;
-  // Vecteur direction du centre vers la planète en écran
-  let dx = screenX - cx;
-  let dy = screenY - cy;
-  // Normalise
-  const len = Math.sqrt(dx*dx + dy*dy);
-  if (len < 1e-3) return null;
-  dx /= len; dy /= len;
-  // Position sur le bord (rectangle, pas cercle)
-  const margin = 32;
-  let bx = cx, by = cy;
-  // Trouver l'intersection avec le bord de l'écran (rectangle)
-  const tx = dx > 0 ? (w - margin - cx) / dx : (margin - cx) / dx;
-  const ty = dy > 0 ? (h - margin - cy) / dy : (margin - cy) / dy;
-  const t = Math.min(Math.abs(tx), Math.abs(ty));
-  bx = cx + dx * t;
-  by = cy + dy * t;
-  // Angle pour la flèche
-  const angle = Math.atan2(dy, dx);
-  return (
-    <div style={{
-      position: 'fixed',
-      left: bx - 18,
-      top: by - 18,
-      width: 36,
-      height: 36,
-      zIndex: 2000,
-      pointerEvents: 'none',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-    }}>
-      <div style={{
-        transform: `rotate(${angle}rad)`,
-        color: color,
-        fontWeight: 'bold',
-        fontSize: 28,
-        textShadow: '1px 1px 3px #000',
-        lineHeight: 1,
-      }}>↑</div>
-      <div style={{
-        fontSize: 13,
-        color: color,
-        fontWeight: 'bold',
-        textShadow: '1px 1px 3px #000',
-        background: '#222a',
-        borderRadius: 6,
-        padding: '1px 6px',
-        marginTop: -2,
-      }}>{planet.name}</div>
-    </div>
-  );
-}
-
-// --- Rendu des indicateurs directionnels en dehors du <Canvas> ---
-function PlanetIndicatorsOverlay({ planets, cameraCenter, zoom }) {
-  return (
-    <>
-      {planets.map(p => (
-        <PlanetDirectionIndicator key={p.name} planet={p} cameraCenter={cameraCenter} zoom={zoom} color={p.color} />
-      ))}
-    </>
-  );
-}
-
 // --- Utilitaire pour obtenir la position monde de chaque planète à l’instant t ---
 function getPlanetsWorldPositions(time) {
   return BASE_PLANETS.map(p => {
@@ -746,6 +646,106 @@ function getPlanetsWorldPositions(time) {
     const [x, y] = getEllipsePosition(0, 0, a, e, p.phase || 0, angle - (p.phase || 0));
     return { ...p, x, y };
   });
+}
+
+// --- Ajout effet Voie Lactée : bande d’étoiles dense et allongée ---
+function MilkyWay({ count = 2000, length = 3200, width = 420, angle = Math.PI/6 }) {
+  // Génère une bande elliptique inclinée
+  const mesh = React.useRef();
+  const positions = React.useMemo(() => {
+    const arr = [];
+    for (let i = 0; i < count; i++) {
+      // Coordonnées dans ellipse centrée
+      let t = 2 * Math.PI * Math.random();
+      let r = Math.sqrt(Math.random());
+      let x = Math.cos(t) * r * length/2;
+      let y = Math.sin(t) * r * width/2;
+      // Ajout d’un flou gaussien pour la densité centrale
+      y += (Math.random()-0.5) * width * 0.25;
+      // Rotation de l’ellipse (voie lactée inclinée)
+      const rot = angle;
+      const xr = x * Math.cos(rot) - y * Math.sin(rot);
+      const yr = x * Math.sin(rot) + y * Math.cos(rot);
+      arr.push(xr, yr, -9.5 + Math.random()*1.5);
+    }
+    return new Float32Array(arr);
+  }, [count, length, width, angle]);
+  return (
+    <points ref={mesh}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={positions.length / 3}
+          array={positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial color={0xffffff} size={1.15} opacity={0.56} transparent />
+    </points>
+  );
+}
+
+// --- Panneau d’options UI pour les astéroïdes dynamiques ---
+function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid }) {
+  // Style homogène avec le panneau principal UI
+  return (
+    <div style={{
+      background: 'rgba(20,24,36,0.85)',
+      borderRadius: 12,
+      padding: '12px 18px 10px 18px',
+      boxShadow: '0 4px 24px #0008',
+      display: 'flex',
+      alignItems: 'center',
+      minWidth: 0,
+      color: '#fff',
+      fontSize: '1.08rem',
+      fontFamily: 'inherit',
+      userSelect: 'none',
+      gap: 12,
+      margin: 0
+    }}>
+      <span style={{ marginRight: 10 }}>Astéroïdes dynamiques :</span>
+      <button
+        onClick={onAddAsteroid}
+        style={{
+          fontSize: '1.2rem',
+          margin: '0 2px',
+          borderRadius: 8,
+          border: 'none',
+          background: 'linear-gradient(90deg,#2a2,#4ad07a 80%)',
+          color: '#fff',
+          width: 32,
+          height: 32,
+          cursor: 'pointer',
+          boxShadow: '0 1px 4px #0006',
+          transition: 'background .2s'
+        }}
+        title="Ajouter un astéroïde"
+        aria-label="Ajouter un astéroïde"
+      >+
+      </button>
+      <button
+        onClick={onRemoveAsteroid}
+        style={{
+          fontSize: '1.2rem',
+          margin: '0 2px',
+          borderRadius: 8,
+          border: 'none',
+          background: 'linear-gradient(90deg,#a22,#e05a5a 80%)',
+          color: '#fff',
+          width: 32,
+          height: 32,
+          cursor: 'pointer',
+          boxShadow: '0 1px 4px #0006',
+          transition: 'background .2s'
+        }}
+        title="Retirer un astéroïde"
+        aria-label="Retirer un astéroïde"
+      >-
+      </button>
+      <span style={{ marginLeft: 10, fontSize: '1.08rem', fontWeight: 600, minWidth: 18, textAlign: 'center', letterSpacing: 0.5 }}>{Array.isArray(asteroids) ? asteroids.filter(ast => !ast.destroyed).length : 0}</span>
+    </div>
+  );
 }
 
 export default function App() {
@@ -853,8 +853,12 @@ export default function App() {
   }
 
   // Contrôle du temps
-  const MIN_SPEED = 0.05;
-  const MAX_SPEED = 64;
+  const DAY_SECONDS = 86400; // 1 jour = 86400 s
+
+  function getSimulatedDaysPerSecond(timeSpeed) {
+    return Number(timeSpeed).toFixed(2);
+  }
+
   function handleSliderChange(e) {
     const v = Number(e.target.value);
     setTimeSpeed(v);
@@ -874,6 +878,25 @@ export default function App() {
   }, []);
   const planetsWithPos = getPlanetsWorldPositions(globalTime);
 
+  // --- Astéroïdes dynamiques partagés entre UI et Vue 3D ---
+  const [asteroids, setAsteroids] = React.useState(() => generateAsteroids());
+
+  function handleAddAsteroid() {
+    // Correction : s’assurer que destroyed=false sur tout nouvel astéroïde
+    const newAst = generateAsteroids(1)[0];
+    newAst.destroyed = false;
+    setAsteroids(asts => [...asts, newAst]);
+  }
+  function handleRemoveAsteroid() {
+    setAsteroids(asts => {
+      const idx = asts.findIndex(ast => !ast.destroyed);
+      if (idx === -1) return asts;
+      const arr = [...asts];
+      arr[idx] = { ...arr[idx], destroyed: true };
+      return arr;
+    });
+  }
+
   return (
     <>
       <div
@@ -889,28 +912,33 @@ export default function App() {
           <button onClick={handleZoomOut}>Zoom -</button>
         </div>
         <div style={{marginTop:8}}>
-          <button onClick={() => setShowLabels(v => !v)}>{showLabels ? 'Cacher les noms' : 'Afficher les noms'}</button>
+          <button onClick={() => setShowLabels(v => !v)}>
+            {showLabels ? 'Cacher les noms' : 'Afficher les noms'}
+          </button>
         </div>
         <div style={{marginTop:16, display:'flex', gap:8, alignItems:'center'}}>
           <span style={{color:'#fff', fontSize:'1.2em', marginRight:6}}>⏪</span>
-          <input
-            type="range"
-            min={MIN_SPEED}
-            max={MAX_SPEED}
-            step={0.01}
-            value={paused ? 0 : timeSpeed}
-            onChange={handleSliderChange}
-            style={{ width: 120 }}
-            onMouseEnter={() => setIsUiHovered(true)}
-            onMouseLeave={() => setIsUiHovered(false)}
-          />
+          <input type="range" min="0.05" max="64" step="0.01" value={timeSpeed}
+            onChange={handleSliderChange} style={{width:120}} />
           <span style={{color:'#fff', fontSize:'1.2em', marginLeft:6}}>⏩</span>
-          <button onClick={() => {
-            setPaused(p => !p);
-            if (paused && timeSpeed === 0) setTimeSpeed(1);
-          }}>{paused ? '▶️' : '⏸️'}</button>
-          <button onClick={() => { setTimeSpeed(1); setPaused(false); }} title="Réinitialiser la vitesse" style={{fontWeight:'bold', fontSize:'1.1em'}} aria-label="Vitesse normale">🔄</button>
-          <span style={{minWidth:60, color:'#fff', alignSelf:'center'}}>x{paused ? 0 : timeSpeed.toFixed(2)}</span>
+          <button onClick={() => setPaused(p => !p)}>{paused ? '▶️' : '⏸️'}</button>
+          <button title="Réinitialiser la vitesse" aria-label="Vitesse normale"
+            onClick={() => { setTimeSpeed(1); setPaused(false); }}
+            style={{fontWeight:'bold', fontSize:'1.1em'}}>
+            🔄
+          </button>
+          <span style={{minWidth:60, color:'#fff', alignSelf:'center'}}>x{timeSpeed.toFixed(2)}</span>
+          <span style={{color:'#7fd', fontSize:'1em', marginLeft:8}}>
+            {getSimulatedDaysPerSecond(timeSpeed)} j/s
+          </span>
+        </div>
+        {/* --- Panneau d’options astéroïdes dynamiques --- */}
+        <div style={{marginTop:18}}>
+          <SolarSystemOptions
+            asteroids={asteroids}
+            onAddAsteroid={handleAddAsteroid}
+            onRemoveAsteroid={handleRemoveAsteroid}
+          />
         </div>
       </div>
       <Canvas
@@ -941,10 +969,17 @@ export default function App() {
           near={0.1}
           far={1000}
         />
-        <Stars />
-        <SolarSystem zoom={zoom} showLabels={showLabels} timeSpeed={timeSpeed} paused={paused} />
+        <Stars count={1000} spread={3000} />
+        <MilkyWay count={2000} length={3200} width={420} angle={Math.PI/6} />
+        <SolarSystemView
+          zoom={zoom}
+          showLabels={showLabels}
+          timeSpeed={timeSpeed}
+          paused={paused}
+          asteroids={asteroids}
+          setAsteroids={setAsteroids}
+        />
       </Canvas>
-      <PlanetIndicatorsOverlay planets={planetsWithPos} cameraCenter={cameraCenter} zoom={zoom} />
     </>
   );
 }
