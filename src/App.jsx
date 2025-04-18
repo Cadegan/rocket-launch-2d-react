@@ -46,12 +46,37 @@ const BASE_PLANETS = [
     { name: 'Europe', color: '#b4d2e7', orbit: 12, size: 0.22, speed: 0.10, gravityInfluence: 1.3, ecc: 0.009 },
     { name: 'Ganymède', color: '#d8c7a7', orbit: 16, size: 0.30, speed: 0.08, gravityInfluence: 1.6, ecc: 0.0013 },
     { name: 'Callisto', color: '#b5b5b5', orbit: 21, size: 0.28, speed: 0.06, gravityInfluence: 1.2, ecc: 0.007 }
+  ], rings: [
+    { innerRadius: 3.5, outerRadius: 4.2, color: '#eab676', opacity: 0.22, tilt: 0.13 }
   ] },
   { name: 'Saturne', color: '#e7d9a7', orbit: 402.4, size: 2.1, speed: 0.007, gravityInfluence: 14, ecc: 0.056, moons: [
-    { name: 'Titan', color: '#e0b96c', orbit: 20, size: 0.28, speed: 0.07, gravityInfluence: 1.1, ecc: 0.028 }
+    { name: 'Mimas', color: '#bbb', orbit: 3.9, size: 0.11, speed: 0.18, gravityInfluence: 0.3, ecc: 0.020 },
+    { name: 'Encelade', color: '#e0f6ff', orbit: 6.2, size: 0.13, speed: 0.16, gravityInfluence: 0.4, ecc: 0.0047 },
+    { name: 'Téthys', color: '#eaeaea', orbit: 8.7, size: 0.14, speed: 0.14, gravityInfluence: 0.5, ecc: 0.0001 },
+    { name: 'Dioné', color: '#e6e6e6', orbit: 11.2, size: 0.16, speed: 0.13, gravityInfluence: 0.6, ecc: 0.0022 },
+    { name: 'Rhéa', color: '#e0e0e0', orbit: 15.3, size: 0.18, speed: 0.11, gravityInfluence: 0.7, ecc: 0.001 },
+    { name: 'Titan', color: '#e0b96c', orbit: 20, size: 0.28, speed: 0.07, gravityInfluence: 1.1, ecc: 0.028 },
+    { name: 'Japet', color: '#cfcfcf', orbit: 35.5, size: 0.19, speed: 0.04, gravityInfluence: 0.4, ecc: 0.0283 }
+  ], rings: [
+    { innerRadius: 2.5, outerRadius: 3.2, color: '#e7d9a7', opacity: 0.44, tilt: 0.48 },
+    { innerRadius: 3.3, outerRadius: 3.5, color: '#fff6c7', opacity: 0.22, tilt: 0.48 }
   ] },
-  { name: 'Uranus', color: '#7de3f4', orbit: 805.6, size: 1.7, speed: 0.005, gravityInfluence: 9, ecc: 0.046 },
-  { name: 'Neptune', color: '#4166f6', orbit: 1262.9, size: 1.7, speed: 0.004, gravityInfluence: 8, ecc: 0.010 }
+  { name: 'Uranus', color: '#7de3f4', orbit: 805.6, size: 1.7, speed: 0.005, gravityInfluence: 9, ecc: 0.046, moons: [
+    { name: 'Miranda', color: '#d6f6ff', orbit: 5.1, size: 0.09, speed: 0.21, gravityInfluence: 0.2, ecc: 0.0013 },
+    { name: 'Ariel', color: '#e3f6ff', orbit: 7.5, size: 0.13, speed: 0.16, gravityInfluence: 0.3, ecc: 0.0012 },
+    { name: 'Umbriel', color: '#c4d2e6', orbit: 10.4, size: 0.12, speed: 0.13, gravityInfluence: 0.3, ecc: 0.0039 },
+    { name: 'Titania', color: '#eaeaea', orbit: 14.2, size: 0.17, speed: 0.10, gravityInfluence: 0.4, ecc: 0.0011 },
+    { name: 'Obéron', color: '#b5b5b5', orbit: 18.0, size: 0.16, speed: 0.08, gravityInfluence: 0.4, ecc: 0.0014 }
+  ], rings: [
+    { innerRadius: 1.5, outerRadius: 2.0, color: '#7de3f4', opacity: 0.30, tilt: 1.1 }
+  ] },
+  { name: 'Neptune', color: '#4166f6', orbit: 1262.9, size: 1.7, speed: 0.004, gravityInfluence: 8, ecc: 0.010, moons: [
+    { name: 'Triton', color: '#e0e0e0', orbit: 14.3, size: 0.18, speed: 0.09, gravityInfluence: 0.6, ecc: 0.000016 },
+    { name: 'Protée', color: '#b5b5b5', orbit: 4.8, size: 0.10, speed: 0.18, gravityInfluence: 0.2, ecc: 0.0005 },
+    { name: 'Néréide', color: '#b4d2e7', orbit: 223, size: 0.07, speed: 0.004, gravityInfluence: 0.1, ecc: 0.7512 }
+  ], rings: [
+    { innerRadius: 1.2, outerRadius: 1.5, color: '#4166f6', opacity: 0.17, tilt: 0.4 }
+  ] },
 ];
 
 // Utilitaire : position ellipse réaliste (même formule que debug)
@@ -144,7 +169,17 @@ function Moon({ planetPos, moon, time, phase, labelOpacity = 1, showLabels = tru
   );
 }
 
-function Planet({ color, orbit, size, speed, time, label, phase, moons = [], moonPhases = [], labelOpacity = 1, showLabels = true, gravityInfluence = 0, ecc }) {
+function PlanetRing({ x, y, innerRadius, outerRadius, color = '#fff', opacity = 0.45, tilt = 0 }) {
+  // Génère un anneau simple (cercle épais)
+  return (
+    <mesh position={[x, y, 0.01]} rotation={[tilt, 0, 0]}>
+      <ringGeometry args={[innerRadius, outerRadius, 80]} />
+      <meshBasicMaterial color={color} transparent opacity={opacity} side={2} />
+    </mesh>
+  );
+}
+
+function Planet({ color, orbit, size, speed, time, label, phase, moons = [], moonPhases = [], labelOpacity = 1, showLabels = true, gravityInfluence = 0, ecc, rings }) {
   // Mouvement orbital avec phase initiale
   const angle = speed * time + phase;
   // Correction : utiliser la vraie excentricité
@@ -186,6 +221,10 @@ function Planet({ color, orbit, size, speed, time, label, phase, moons = [], moo
         <circleGeometry args={[size, 32]} />
         <meshBasicMaterial color={color} transparent opacity={1} depthWrite={true} side={THREE.FrontSide} />
       </mesh>
+      {/* Anneaux planétaires */}
+      {Array.isArray(rings) && rings.map((ring, i) => (
+        <PlanetRing key={i} x={x} y={y} {...ring} />
+      ))}
       {/* Nom de la planète, en couleur */}
       {showLabels && (
         <Html position={[x, y + size + 0.7, 0]} center style={{ color: color, fontWeight: 'bold', fontSize: '0.85rem', textShadow: '1px 1px 3px #000', opacity: labelOpacity }}>{label}</Html>
