@@ -624,7 +624,10 @@ function SolarSystemView({ zoom, showLabels, timeSpeed, paused, asteroids, setAs
       </mesh>
       {planetsWithPos.map((p) => (
         <React.Fragment key={p.name}>
-          <Orbit cx={0} cy={0} radius={p.orbit} ecc={p.ecc} phase={p.phase} />
+          {/* Affiche l'orbite uniquement si la planète est Mercure, Vénus, Terre, Mars, Jupiter, Saturne, Uranus ou Neptune */}
+          {['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune'].includes(p.name) && (
+            <Orbit cx={0} cy={0} radius={p.orbit} ecc={p.ecc} phase={p.phase} />
+          )}
           <Planet {...p} time={time} label={p.name} labelOpacity={labelOpacity} showLabels={showLabels} />
         </React.Fragment>
       ))}
@@ -787,13 +790,65 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid }) {
   );
 }
 
+// Icône hamburger SVG
+function HamburgerIcon({ showCross, size = 32 }) {
+  // showCross == true => croix (menu ouvert), false => hamburger (menu fermé)
+  const color = '#fff';
+  const shadow = '0 1px 8px #000c';
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" style={{ display: 'block' }}>
+      {/* Hamburger (menu fermé) */}
+      <rect y={7} width={28} height={3.5} rx={2} fill={color} x={2}
+        style={{
+          transition: 'all 0.28s',
+          opacity: showCross ? 0 : 1,
+          filter: shadow,
+        }}
+      />
+      <rect y={14.5} width={28} height={3.5} rx={2} fill={color} x={2}
+        style={{
+          transition: 'all 0.22s',
+          opacity: showCross ? 0 : 1,
+          filter: shadow,
+        }}
+      />
+      <rect y={22} width={28} height={3.5} rx={2} fill={color} x={2}
+        style={{
+          transition: 'all 0.28s',
+          opacity: showCross ? 0 : 1,
+          filter: shadow,
+        }}
+      />
+      {/* Croix (menu ouvert) */}
+      <rect y={7} width={28} height={3.5} rx={2} fill={color} x={2}
+        style={{
+          transition: 'all 0.28s',
+          transform: showCross ? 'rotate(45deg) translate(5px, 8px)' : 'none',
+          opacity: showCross ? 1 : 0,
+          filter: shadow,
+          position: 'absolute',
+        }}
+      />
+      <rect y={22} width={28} height={3.5} rx={2} fill={color} x={2}
+        style={{
+          transition: 'all 0.28s',
+          transform: showCross ? 'rotate(-45deg) translate(5px, -8px)' : 'none',
+          opacity: showCross ? 1 : 0,
+          filter: shadow,
+          position: 'absolute',
+        }}
+      />
+    </svg>
+  );
+}
+
 export default function App() {
   const [status, setStatus] = React.useState('Appuyez sur "Lancer la fusée"');
   const [launched, setLaunched] = React.useState(false);
   const velocity = React.useRef(new THREE.Vector2(0, 0));
   // Système de zoom et pan
-  const [zoom, setZoom] = React.useState(0.012); // valeur ultra-basse pour tout voir
-  const [cameraCenter, setCameraCenter] = React.useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = React.useState(1.5); // Zoom initial plus large (planètes telluriques visibles)
+  const [cameraCenter, setCameraCenter] = React.useState({ x: 0, y: 0 }); // Centrer sur l'orbite de la Terre
   const [showLabels, setShowLabels] = React.useState(true);
   const [timeSpeed, setTimeSpeed] = React.useState(1); // 1 = normal, 0 = pause
   const [paused, setPaused] = React.useState(false);
@@ -802,7 +857,10 @@ export default function App() {
   const lastMouse = React.useRef({ x: 0, y: 0 });
   // Limites de zoom
   const MIN_ZOOM = 0.002; // Zoom encore plus large pour TOUT voir
-  const MAX_ZOOM = 6; // Zoom encore plus loin
+  const MAX_ZOOM = 6;
+
+  // Gestion du menu principal
+  const [menuVisible, setMenuVisible] = React.useState(true);
 
   // Gestion du zoom centré sur la souris
   React.useEffect(() => {
@@ -938,12 +996,50 @@ export default function App() {
 
   return (
     <>
+      {/* Bouton Hamburger pour afficher/cacher le menu */}
+      <button
+        style={{
+          position: 'absolute',
+          top: 18,
+          left: 20,
+          zIndex: 1100,
+          background: menuVisible ? '#1e2a4a' : 'rgba(30,42,74,0.7)',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 8,
+          padding: '7px 9px',
+          boxShadow: '0 2px 12px #0007',
+          transition: 'background 0.2s',
+          cursor: 'pointer',
+          width: 44,
+          height: 44,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        onClick={() => setMenuVisible(v => !v)}
+        aria-label={menuVisible ? 'Cacher le menu' : 'Afficher le menu'}
+      >
+        <HamburgerIcon showCross={menuVisible} size={28} />
+      </button>
       <div
         id="ui"
         onMouseEnter={() => setIsUiHovered(true)}
         onMouseLeave={() => setIsUiHovered(false)}
+        style={{
+          display: menuVisible ? undefined : 'none',
+          transition: 'display 0.2s',
+        }}
       >
-        <h1>Rocket Launch 2D</h1>
+        <h1 style={{
+          fontSize: '1.7em',
+          fontWeight: 700,
+          margin: '32px 0 18px 0', // augmente le margin-top
+          textAlign: 'center',
+          letterSpacing: '0.03em',
+          color: '#fff',
+          textShadow: '0 2px 8px #000a',
+        }}>Rocket Launch 2D</h1>
         <button onClick={launchRocket}>Lancer la fusée</button>
         <p id="status">{status}</p>
         <div style={{marginTop:8}}>
