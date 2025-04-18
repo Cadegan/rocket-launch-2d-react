@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Debug Ellipse JS</title>
+  <style>
+    html, body { background: #222; color: #fff; }
+    canvas { background: #222; display: block; margin: 0 auto; }
+    #info { text-align: center; margin: 1em; }
+  </style>
+</head>
+<body>
+  <div id="info">Ellipse : <b>r = a(1-e²)/(1+e·cosθ)</b> — <span id="params"></span></div>
+  <canvas id="c" width="600" height="600"></canvas>
+  <script>
+    // Debug visuel ellipse et trajectoire planète
+    const ctx = document.getElementById('c').getContext('2d');
+    const W = 600, H = 600;
+    const cx = W/2, cy = H/2;
+    // Paramètres testables :
+    const a = 180; // demi-grand axe
+    const e = 0.206; // excentricité (Mercure)
+    const phase = Math.PI/5; // phase initiale
+    document.getElementById('params').textContent = `a=${a}, e=${e.toFixed(3)}, phase=${phase.toFixed(2)}`;
+    // Calcul du foyer (Soleil)
+    const fx = cx + a*e*Math.cos(phase);
+    const fy = cy + a*e*Math.sin(phase);
+    // Décalage pour superposer parfaitement le cercle et l’ellipse au point de contact (θ=π/2)
+    // On place le centre du cercle exactement sur le point de l’ellipse à θ=π/2
+    const contact_theta = Math.PI/2;
+    const r_ellipse = a*(1-e*e)/(1+e*Math.cos(contact_theta));
+    const cxc = cx + Math.cos(contact_theta+phase)*r_ellipse - a*e*Math.cos(phase);
+    const cyc = cy + Math.sin(contact_theta+phase)*r_ellipse - a*e*Math.sin(phase);
+    // Tracé du cercle de rayon a (pour comparaison)
+    ctx.save();
+    ctx.strokeStyle = '#0ff7';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for(let i=0; i<=200; ++i) {
+      const theta = i/200*Math.PI*2;
+      const x = cxc + Math.cos(theta+phase)*a;
+      const y = cyc + Math.sin(theta+phase)*a;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.restore();
+    // Point de départ de la planète rouge (t=0)
+    const angle0 = phase;
+    const r0 = a*(1-e*e)/(1+e*Math.cos(0));
+    const px0 = cx + Math.cos(angle0)*r0 - a*e*Math.cos(phase);
+    const py0 = cy + Math.sin(angle0)*r0 - a*e*Math.sin(phase);
+    // Tracé d’un cercle parfait de rayon a, centré sur le point de départ
+    ctx.save();
+    ctx.strokeStyle = '#0ff7';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for(let i=0; i<=200; ++i) {
+      const theta = i/200*Math.PI*2;
+      const x = px0 + Math.cos(theta)*a;
+      const y = py0 + Math.sin(theta)*a;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.restore();
+    // Tracé de l’ellipse (orbite)
+    ctx.save();
+    ctx.strokeStyle = '#fff8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for(let i=0; i<=200; ++i) {
+      const theta = i/200*Math.PI*2;
+      const r = a*(1-e*e)/(1+e*Math.cos(theta));
+      const x = cx + Math.cos(theta+phase)*r - a*e*Math.cos(phase);
+      const y = cy + Math.sin(theta+phase)*r - a*e*Math.sin(phase);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.restore();
+    // Foyer (Soleil)
+    ctx.save();
+    ctx.fillStyle = '#ff0';
+    ctx.beginPath(); ctx.arc(fx, fy, 6, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+    // Centre ellipse
+    ctx.save();
+    ctx.fillStyle = '#0ff8';
+    ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+    // Animation planète
+    let t = 0;
+    function drawPlanet() {
+      ctx.clearRect(0,0,W,H);
+      // Cercle de comparaison (superposé à l’ellipse à θ=π/2)
+      ctx.save();
+      ctx.strokeStyle = '#0ff7';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for(let i=0; i<=200; ++i) {
+        const theta = i/200*Math.PI*2;
+        const x = cxc + Math.cos(theta+phase)*a;
+        const y = cyc + Math.sin(theta+phase)*a;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      ctx.restore();
+      // Cercle parfait au point de départ de la planète rouge
+      ctx.save();
+      ctx.strokeStyle = '#0ff7';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for(let i=0; i<=200; ++i) {
+        const theta = i/200*Math.PI*2;
+        const x = px0 + Math.cos(theta)*a;
+        const y = py0 + Math.sin(theta)*a;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      ctx.restore();
+      // ellipse
+      ctx.save();
+      ctx.strokeStyle = '#fff8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for(let i=0; i<=200; ++i) {
+        const theta = i/200*Math.PI*2;
+        const r = a*(1-e*e)/(1+e*Math.cos(theta));
+        const x = cx + Math.cos(theta+phase)*r - a*e*Math.cos(phase);
+        const y = cy + Math.sin(theta+phase)*r - a*e*Math.sin(phase);
+        if(i===0) {
+          ctx.moveTo(x,y);
+        } else {
+          ctx.lineTo(x,y);
+        }
+      }
+      ctx.stroke();
+      ctx.restore();
+      // Foyer
+      ctx.save(); ctx.fillStyle = '#ff0'; ctx.beginPath(); ctx.arc(fx, fy, 6, 0, Math.PI*2); ctx.fill(); ctx.restore();
+      // Centre ellipse
+      ctx.save(); ctx.fillStyle = '#0ff8'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill(); ctx.restore();
+      // Planète
+      const angle = t + phase;
+      const r = a*(1-e*e)/(1+e*Math.cos(angle-phase));
+      const px = cx + Math.cos(angle)*r - a*e*Math.cos(phase);
+      const py = cy + Math.sin(angle)*r - a*e*Math.sin(phase);
+      ctx.save(); ctx.fillStyle = '#f44'; ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI*2); ctx.fill(); ctx.restore();
+      t += 0.01;
+      requestAnimationFrame(drawPlanet);
+    }
+    drawPlanet();
+  </script>
+</body>
+</html>
