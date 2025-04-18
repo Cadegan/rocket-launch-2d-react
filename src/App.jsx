@@ -930,7 +930,7 @@ export default function App() {
     setZoom(z => Math.max(MIN_ZOOM, z * 0.8));
   }
   function handleZoomOut() {
-    setZoom(z => Math.max(MIN_ZOOM, z / 1.25)); // Pour dézoomer (réduire le zoom)
+    setZoom(z => Math.min(MAX_ZOOM, z / 0.8)); // Correction : dézoomer
   }
 
   function resetRocket() {
@@ -994,10 +994,78 @@ export default function App() {
     });
   }
 
+  // Ajoute des styles responsive pour le menu et le bouton hamburger
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @media (max-width: 600px) {
+        #ui {
+          width: 96vw !important;
+          min-width: 0 !important;
+          max-width: 98vw !important;
+          left: 0 !important;
+          right: 0 !important;
+          border-radius: 0 0 16px 16px !important;
+          padding: 12px 2vw 18px 2vw !important;
+          box-shadow: 0 6px 32px #0008;
+        }
+        #ui h1 {
+          font-size: 1.15em !important;
+          margin-top: 40px !important;
+        }
+        #ui button, #ui input, #ui select {
+          font-size: 1em !important;
+          width: 100% !important;
+          min-width: 0 !important;
+          margin-bottom: 10px !important;
+        }
+        .orbit-options {
+          flex-direction: column !important;
+          gap: 8px !important;
+        }
+        .orbit-options > * {
+          width: 100% !important;
+        }
+        .asteroid-list {
+          max-height: 20vh !important;
+          overflow-y: auto;
+        }
+        .react-draggable, .react-draggable * {
+          touch-action: none !important;
+        }
+      }
+      @media (max-width: 430px) {
+        #ui {
+          padding: 6px 1vw 10px 1vw !important;
+        }
+        #ui h1 {
+          font-size: 1em !important;
+        }
+      }
+      @media (max-width: 370px) {
+        #ui h1 {
+          font-size: 0.85em !important;
+        }
+      }
+      @media (max-width: 600px) {
+        .hamburger-mobile {
+          left: 10px !important;
+          top: 10px !important;
+          width: 38px !important;
+          height: 38px !important;
+          padding: 5px 5px !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
   return (
     <>
       {/* Bouton Hamburger pour afficher/cacher le menu */}
       <button
+        className="hamburger-mobile"
         style={{
           position: 'absolute',
           top: 18,
