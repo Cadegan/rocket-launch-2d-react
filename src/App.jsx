@@ -376,6 +376,7 @@ function Asteroid({ initial, color = '#fff', trailColor = '#ff0', planets, timeS
   const [exploding, setExploding] = React.useState(false);
   const hasExplodedRef = React.useRef(false);
   const impactPosRef = React.useRef(null);
+  const bornAt = initial.bornAt || Date.now();
   // Simulation physique
   useFrame((_, delta) => {
     if (paused || escaped || exploding || hasExplodedRef.current) return;
@@ -467,7 +468,8 @@ function generateAsteroidInnerSystem() {
     vel: [vx, vy],
     color: colors[idx],
     trailColor: colors[(idx*3+2) % colors.length],
-    destroyed: false // <-- Correction : toujours false à la création
+    destroyed: false,
+    bornAt: Date.now()
   };
 }
 
@@ -503,7 +505,8 @@ function generateAsteroids(n = 20) {
       vel: [vx, vy],
       color: colors[idx],
       trailColor: colors[(idx*3+2) % colors.length],
-      destroyed: false // <-- Correction : toujours false à la création
+      destroyed: false,
+      bornAt: Date.now()
     });
   }
   return arr;
@@ -728,7 +731,53 @@ function MilkyWay({ count = 2000, length = 3200, width = 420, angle = Math.PI/6 
 }
 
 // --- Panneau d’options UI pour les astéroïdes dynamiques ---
-function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid }) {
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, info: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    // Log error if needed
+    if (window && window.console) {
+      console.error('SolarSystemOptions Error:', error, info);
+    }
+    this.setState({ info });
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{background:'#e53935', color:'#fff', borderRadius:8, padding:18, margin:10, fontWeight:600, fontSize:'1.12em'}}>
+          Erreur dans les options du système solaire.<br />
+          <span style={{fontSize:'0.95em', fontWeight:400}}>
+            {this.state.error && (this.state.error.message || this.state.error.toString())}
+            {this.state.error && this.state.error.stack && (
+              <details style={{marginTop:8, fontSize:'0.85em', color:'#fff9'}}>
+                <summary>Stack</summary>
+                <pre>{this.state.error.stack}</pre>
+              </details>
+            )}
+            {this.state.info && this.state.info.componentStack && (
+              <details style={{marginTop:8, fontSize:'0.85em', color:'#fff9'}}>
+                <summary>React Component Stack</summary>
+                <pre>{this.state.info.componentStack}</pre>
+              </details>
+            )}
+          </span>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid, startAddAsteroid, stopAddAsteroid }) {
+  // DEBUG: Log props to diagnose error
+  if (typeof window !== 'undefined' && window.console) {
+    console.log('[SolarSystemOptions] props:', { asteroids, onAddAsteroid, onRemoveAsteroid, startAddAsteroid, stopAddAsteroid });
+  }
   // Style homogène avec le panneau principal UI
   return (
     <div style={{
@@ -750,6 +799,11 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid }) {
         {/* Add Asteroid Button with hover/active effect and badge */}
         <div style={{position:'relative', display:'inline-flex'}}>
           <button
+            onMouseDown={startAddAsteroid}
+            onMouseUp={stopAddAsteroid}
+            onMouseLeave={stopAddAsteroid}
+            onTouchStart={startAddAsteroid}
+            onTouchEnd={stopAddAsteroid}
             onClick={onAddAsteroid}
             style={{
               fontSize:'1.5em', width:36, height:36, background:'none', color:'#4de05a', border:'none', borderRadius:0, cursor:'pointer', boxShadow:'none', display:'flex', alignItems:'center', justifyContent:'center', padding:'2px 5px',
@@ -757,11 +811,8 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid }) {
             }}
             title="Ajouter un astéroïde"
             aria-label="Ajouter un astéroïde"
-            onMouseDown={e=>e.currentTarget.style.transform='scale(1.18)'}
-            onMouseUp={e=>e.currentTarget.style.transform='scale(1)'}
-            onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-            onTouchStart={e=>e.currentTarget.style.transform='scale(1.18)'}
-            onTouchEnd={e=>e.currentTarget.style.transform='scale(1)'}
+            onMouseDownCapture={e=>e.currentTarget.style.transform='scale(1.18)'}
+            onMouseUpCapture={e=>e.currentTarget.style.transform='scale(1)'}
             onMouseOver={e=>e.currentTarget.style.filter='brightness(1.2)'}
             onMouseOut={e=>e.currentTarget.style.filter='brightness(1)'}
           >
@@ -774,7 +825,6 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid }) {
             border:'2px solid #222', boxShadow:'0 1.5px 6px #0006', minWidth:22, textAlign:'center', letterSpacing:0.5
           }}>x{Array.isArray(asteroids) ? asteroids.filter(ast => !ast.destroyed).length : 0}</span>
         </div>
-        {/* Remove Asteroid Button with hover/active effect and tooltip */}
         <div style={{position:'relative', display:'inline-flex'}}>
           <button
             onClick={onRemoveAsteroid}
@@ -786,20 +836,11 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid }) {
             aria-label="Retirer un astéroïde"
             onMouseDown={e=>e.currentTarget.style.transform='scale(1.18)'}
             onMouseUp={e=>e.currentTarget.style.transform='scale(1)'}
-            onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-            onTouchStart={e=>e.currentTarget.style.transform='scale(1.18)'}
-            onTouchEnd={e=>e.currentTarget.style.transform='scale(1)'}
             onMouseOver={e=>e.currentTarget.style.filter='brightness(1.2)'}
             onMouseOut={e=>e.currentTarget.style.filter='brightness(1)'}
           >
             <span style={{fontWeight:700}}>🗑️</span>
           </button>
-          {/* Tooltip */}
-          <span style={{
-            position:'absolute', bottom:-30, left:'50%', transform:'translateX(-50%)',
-            background:'#222c', color:'#fff', fontSize:'0.85em', borderRadius:8, padding:'3px 10px', fontWeight:500,
-            opacity:0, pointerEvents:'none', transition:'opacity 0.18s', zIndex:2
-          }} className="remove-tooltip">Supprimer un astéroïde</span>
         </div>
       </div>
     </div>
@@ -841,6 +882,35 @@ function useUiFade(timeout = 5000) {
     };
   }, [timeout]);
   return faded;
+}
+
+// --- Ripple effect util ---
+function addRipple(e) {
+  const btn = e.currentTarget;
+  const circle = document.createElement('span');
+  const diameter = Math.max(btn.clientWidth, btn.clientHeight);
+  const rect = btn.getBoundingClientRect();
+  circle.className = 'ripple-effect';
+  circle.style.width = circle.style.height = diameter + 'px';
+  circle.style.left = (e.clientX - rect.left - diameter / 2) + 'px';
+  circle.style.top = (e.clientY - rect.top - diameter / 2) + 'px';
+  btn.appendChild(circle);
+  circle.addEventListener('animationend', () => circle.remove());
+}
+
+// --- Gestion du zoom continu sur appui long ---
+function useContinuousAction(action, delay = 120) {
+  const interval = React.useRef();
+  const start = React.useCallback(() => {
+    action();
+    if (interval.current) clearInterval(interval.current);
+    interval.current = setInterval(action, delay);
+  }, [action, delay]);
+  const stop = React.useCallback(() => {
+    if (interval.current) clearInterval(interval.current);
+  }, []);
+  React.useEffect(() => () => stop(), [stop]);
+  return [start, stop];
 }
 
 export default function App() {
@@ -955,9 +1025,21 @@ export default function App() {
   const [asteroids, setAsteroids] = React.useState(() => generateAsteroids());
 
   function handleAddAsteroid() {
-    // Correction : s’assurer que destroyed=false sur tout nouvel astéroïde
-    const newAst = generateAsteroids(1)[0];
-    newAst.destroyed = false;
+    const now = Date.now();
+    let newAst;
+    let safe = false;
+    let tries = 0;
+    while (!safe && tries < 10) {
+      newAst = generateAsteroids(1)[0];
+      newAst.destroyed = false;
+      newAst.bornAt = now;
+      // Vérifie que la position initiale n'est pas trop près du Soleil (0,0) ou d'une planète
+      const [x, y] = newAst.pos;
+      const r = Math.sqrt(x*x + y*y);
+      safe = r > 8; // au moins 8 unités du Soleil
+      // TODO: on pourrait aussi vérifier la distance à chaque planète
+      tries++;
+    }
     setAsteroids(asts => [...asts, newAst]);
   }
   function handleRemoveAsteroid() {
@@ -982,6 +1064,10 @@ export default function App() {
 
   // --- Ajout : Utiliser le hook pour griser/transparenter le menu après 5s sans survol sur desktop ---
   const uiFaded = useUiFade(5000);
+
+  const [startZoomIn, stopZoomIn] = useContinuousAction(handleZoomIn, 90);
+  const [startZoomOut, stopZoomOut] = useContinuousAction(handleZoomOut, 90);
+  const [startAddAsteroid, stopAddAsteroid] = useContinuousAction(handleAddAsteroid, 110);
 
   return (
     <>
@@ -1175,11 +1261,90 @@ export default function App() {
         <div style={{width:18, height:38, display:'inline-flex', alignItems:'center', justifyContent:'center'}}>
           <div style={{width:2, height:28, background:'linear-gradient(180deg,#233,#7fd 80%)', borderRadius:3, opacity:0.16}}></div>
         </div>
-        <SolarSystemOptions
-          asteroids={asteroids}
-          onAddAsteroid={handleAddAsteroid}
-          onRemoveAsteroid={handleRemoveAsteroid}
-        />
+        <ErrorBoundary>
+          <SolarSystemOptions
+            asteroids={asteroids}
+            onAddAsteroid={handleAddAsteroid}
+            onRemoveAsteroid={handleRemoveAsteroid}
+            startAddAsteroid={startAddAsteroid}
+            stopAddAsteroid={stopAddAsteroid}
+          />
+        </ErrorBoundary>
+      </div>
+      {/* --- BOUTONS ZOOM EN BAS À GAUCHE --- */}
+      <div style={{
+        position: 'fixed',
+        left: 0,
+        bottom: 0,
+        zIndex: 2147483647,
+        padding: '12px 10px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        pointerEvents: 'none',
+      }}>
+        <button
+          className="ripple"
+          onMouseDown={e => { startZoomIn(); addRipple(e); }}
+          onMouseUp={stopZoomIn}
+          onMouseLeave={stopZoomIn}
+          onTouchStart={e => { startZoomIn(); addRipple(e); }}
+          onTouchEnd={stopZoomIn}
+          aria-label="Zoomer"
+          title="Zoomer"
+          style={{
+            width: 38,
+            height: 38,
+            background: 'rgba(30,40,70,0.82)',
+            color: '#7fd',
+            border: 'none',
+            borderRadius: 12,
+            boxShadow: '0 2px 10px #0005',
+            fontSize: '1.55em',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 4,
+            cursor: 'pointer',
+            pointerEvents: 'auto',
+            transition: 'background 0.18s, color 0.18s',
+            outline: 'none',
+            userSelect: 'none',
+          }}
+        >
+          ＋
+        </button>
+        <button
+          className="ripple"
+          onMouseDown={e => { startZoomOut(); addRipple(e); }}
+          onMouseUp={stopZoomOut}
+          onMouseLeave={stopZoomOut}
+          onTouchStart={e => { startZoomOut(); addRipple(e); }}
+          onTouchEnd={stopZoomOut}
+          aria-label="Dézoomer"
+          title="Dézoomer"
+          style={{
+            width: 38,
+            height: 38,
+            background: 'rgba(30,40,70,0.82)',
+            color: '#7fd',
+            border: 'none',
+            borderRadius: 12,
+            boxShadow: '0 2px 10px #0005',
+            fontSize: '1.55em',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 4,
+            cursor: 'pointer',
+            pointerEvents: 'auto',
+            transition: 'background 0.18s, color 0.18s',
+            outline: 'none',
+            userSelect: 'none',
+          }}
+        >
+          －
+        </button>
       </div>
       <Canvas
         style={{ width: '100vw', height: '100vh', cursor: dragging.current ? 'grabbing' : 'grab' }}
