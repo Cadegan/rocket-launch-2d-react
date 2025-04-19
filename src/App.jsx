@@ -583,7 +583,7 @@ function SolarSystemView({ zoom, showLabels, timeSpeed, paused, asteroids, setAs
       const angle = p.speed * time + p.phase;
       const ecc = p.ecc || 0;
       const a = p.orbit;
-      const [x, y] = getEllipsePosition(0, 0, a, ecc, p.phase || 0, angle - (p.phase || 0));
+      const [x, y] = getEllipsePosition(0, 0, a, ecc, p.phase || 0, angle - p.phase);
       p.x = x;
       p.y = y;
       if (p.moons) {
@@ -988,53 +988,6 @@ export default function App() {
     };
   }, [zoom, isUiHovered]);
 
-  // Touch and Pointer Events for Mobile Dragging
-  React.useEffect(() => {
-    let lastTouch = { x: 0, y: 0 };
-    let touchDragging = false;
-    function getTouchPos(e) {
-      const t = e.touches && e.touches[0];
-      return t ? { x: t.clientX, y: t.clientY } : { x: 0, y: 0 };
-    }
-    function onTouchStart(e) {
-      if (isUiHovered) return;
-      touchDragging = true;
-      dragging.current = true;
-      lastTouch = getTouchPos(e);
-      lastMouse.current = lastTouch;
-    }
-    function onTouchMove(e) {
-      if (!touchDragging) return;
-      const touch = getTouchPos(e);
-      const dx = touch.x - lastTouch.x;
-      const dy = touch.y - lastTouch.y;
-      lastTouch = touch;
-      lastMouse.current = touch;
-      // Adapter le déplacement à l’échelle monde
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const aspect = w / h;
-      const viewWidth = 80 * zoom;
-      const viewHeight = 80 * zoom;
-      setCameraCenter(center => ({
-        x: center.x - dx / w * viewWidth * aspect,
-        y: center.y + dy / h * viewHeight
-      }));
-    }
-    function onTouchEnd() {
-      touchDragging = false;
-      dragging.current = false;
-    }
-    window.addEventListener('touchstart', onTouchStart, { passive: false });
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
-    window.addEventListener('touchend', onTouchEnd, { passive: false });
-    return () => {
-      window.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
-    };
-  }, [zoom, isUiHovered]);
-
   function handleZoomIn() {
     setZoom(z => Math.max(MIN_ZOOM, z * 0.8));
   }
@@ -1122,6 +1075,8 @@ export default function App() {
         id="ui"
         onMouseEnter={() => setIsUiHovered(true)}
         onMouseLeave={() => setIsUiHovered(false)}
+        onTouchStart={() => setIsUiHovered(true)}
+        onTouchEnd={() => setIsUiHovered(false)}
         style={{
           position: 'fixed',
           top: 0,
