@@ -512,7 +512,7 @@ function generateAsteroids(n = 20) {
   return arr;
 }
 
-function RealAsteroid({ a, e, phi, color, trailColor, t, name, systemRadius = 300, onEscape, onExplode }) {
+function RealAsteroid({ a, e, phi, color, trailColor, t, name, systemRadius = 300, onEscape, onExplode, showLabels = true, labelOpacity = 1 }) {
   // Mouvement elliptique autour du soleil
   const n = 0.25 / Math.pow(a, 1.5);
   const theta = t * n + phi;
@@ -541,8 +541,8 @@ function RealAsteroid({ a, e, phi, color, trailColor, t, name, systemRadius = 30
         <meshBasicMaterial color={color} />
       </mesh>
       {/* Nom de l'astéroïde permanent, en couleur */}
-      {name && (
-        <Html position={[x, y + 0.7, 0]} center style={{ color: color, fontWeight: 'bold', fontSize: '0.85rem', textShadow: '1px 1px 3px #000', opacity: 1, userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', pointerEvents: 'none' }}>{name}</Html>
+      {name && showLabels && labelOpacity > 0.01 && (
+        <Html position={[x, y + 0.7, 0]} center style={{ color: color, fontWeight: 'bold', fontSize: '0.85rem', textShadow: '1px 1px 3px #000', opacity: labelOpacity, userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', pointerEvents: 'none' }}>{name}</Html>
       )}
     </>
   );
@@ -583,7 +583,7 @@ function SolarSystemView({ zoom, showLabels, timeSpeed, paused, asteroids, setAs
       const angle = p.speed * time + p.phase;
       const ecc = p.ecc || 0;
       const a = p.orbit;
-      const [x, y] = getEllipsePosition(0, 0, a, ecc, p.phase || 0, angle - p.phase);
+      const [x, y] = getEllipsePosition(0, 0, a, ecc, p.phase || 0, angle - (p.phase || 0));
       p.x = x;
       p.y = y;
       if (p.moons) {
@@ -652,7 +652,7 @@ function SolarSystemView({ zoom, showLabels, timeSpeed, paused, asteroids, setAs
       ))}
       {/* Astéroïdes réels */}
       {REAL_ASTEROIDS.map((ast, idx) => (
-        <RealAsteroid key={ast.name || idx} {...ast} t={time} />
+        <RealAsteroid key={ast.name || idx} {...ast} t={time} showLabels={showLabels} labelOpacity={labelOpacity} />
       ))}
       {/* Explosions */}
       {explosions.map(e => (
@@ -773,10 +773,10 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid, startAddAsteroid, stopAddAsteroid }) {
+function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid, startAddAsteroid, stopAddAsteroid, showLabels, onToggleLabels }) {
   // DEBUG: Log props to diagnose error
   if (typeof window !== 'undefined' && window.console) {
-    console.log('[SolarSystemOptions] props:', { asteroids, onAddAsteroid, onRemoveAsteroid, startAddAsteroid, stopAddAsteroid });
+    console.log('[SolarSystemOptions] props:', { asteroids, onAddAsteroid, onRemoveAsteroid, startAddAsteroid, stopAddAsteroid, showLabels, onToggleLabels });
   }
   // Style homogène avec le panneau principal UI
   return (
@@ -784,7 +784,6 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid, startA
       background: 'rgba(20,24,36,0.85)',
       borderRadius: 12,
       padding: '12px 18px 10px 18px',
-      boxShadow: '0 4px 24px #0008',
       display: 'flex',
       alignItems: 'center',
       minWidth: 0,
@@ -795,7 +794,45 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid, startA
       gap: 12,
       margin: 0
     }}>
-      <div style={{display:'flex', alignItems:'center', gap:8, background:'rgba(0,0,0,0.07)', borderRadius:8, padding:'4px 10px', position:'relative'}}>
+      <div className="ui-options-row" style={{display:'flex', alignItems:'center', gap:8, background:'rgba(0,0,0,0.07)', borderRadius:8, padding:'4px 10px', position:'relative'}}>
+        {/* Option : afficher/cacher les noms des astres */}
+        <button
+          onClick={() => onToggleLabels?.()}
+          title={showLabels ? "Cacher les noms des astres" : "Afficher les noms des astres"}
+          aria-label={showLabels ? "Cacher les noms des astres" : "Afficher les noms des astres"}
+          style={{
+            background: showLabels ? 'linear-gradient(135deg,#1e233a,#25355c 80%)' : 'none',
+            border: '1.5px solid #25355c',
+            borderRadius: 8,
+            width: 36,
+            height: 36,
+            marginRight: 7,
+            marginLeft: 2,
+            color: '#7fd',
+            fontSize: '1.22em',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 1.5px 6px #0006',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background 0.18s, color 0.18s',
+            outline: 'none',
+            userSelect: 'none',
+          }}
+        >
+          {showLabels ? '👁️' : '🙈'}
+        </button>
+        {/* Séparateur vertical */}
+        <span style={{
+          display: 'inline-block',
+          width: 1.6,
+          height: 32,
+          background: 'linear-gradient(180deg,#25355c 70%,#1e233a 100%)',
+          margin: '0 10px',
+          borderRadius: 2,
+          opacity: 0.7,
+        }} />
         {/* Add Asteroid Button with hover/active effect and badge */}
         <div style={{position:'relative', display:'inline-flex'}}>
           <button
@@ -999,7 +1036,7 @@ export default function App() {
   const DAY_SECONDS = 86400; // 1 jour = 86400 s
 
   function getSimulatedDaysPerSecond(timeSpeed) {
-    return Number(timeSpeed).toFixed(2);
+    return Number(timeSpeed).toFixed(1);
   }
 
   function handleSliderChange(e) {
@@ -1135,7 +1172,7 @@ export default function App() {
             style={{
               width:140,
               accentColor:'#7fd',
-              background:'linear-gradient(90deg,#1e233a 60%,#25355c 100%)',
+              background:'linear-gradient(90deg,#1e233a,#25355c 60%)',
               borderRadius:10,
               height:10,
               margin:0,
@@ -1180,16 +1217,16 @@ export default function App() {
             borderRadius:8,
             fontSize:'1.09em',
             margin:'0 2px 0 0',
-            padding:'2px 9px',
+            padding:'2px 16px',
             letterSpacing:'0.04em',
             boxShadow:'0 1px 7px #0003',
             border:'1.5px solid #25355c',
             display:'inline-flex',
             alignItems:'center',
-            minWidth:64,
+            minWidth:84,
             justifyContent:'center',
           }}>
-            {Math.round(getSimulatedDaysPerSecond(timeSpeed))} j/s
+            {getSimulatedDaysPerSecond(timeSpeed)} j/s
           </span>
           <button
             onClick={() => setPaused(p => !p)}
@@ -1241,10 +1278,6 @@ export default function App() {
             <span style={{display:'flex',alignItems:'center',justifyContent:'center',width:'100%',height:'100%'}}>🔄</span>
           </button>
         </div>
-        {/* Séparateur vertical entre contrôles temps et astéroïdes */}
-        <div style={{width:18, height:38, display:'inline-flex', alignItems:'center', justifyContent:'center'}}>
-          <div style={{width:2, height:28, background:'linear-gradient(180deg,#233,#7fd 80%)', borderRadius:3, opacity:0.16}}></div>
-        </div>
         <ErrorBoundary>
           <SolarSystemOptions
             asteroids={asteroids}
@@ -1252,6 +1285,8 @@ export default function App() {
             onRemoveAsteroid={handleRemoveAsteroid}
             startAddAsteroid={startAddAsteroid}
             stopAddAsteroid={stopAddAsteroid}
+            showLabels={showLabels}
+            onToggleLabels={() => setShowLabels(v => !v)}
           />
         </ErrorBoundary>
       </div>

@@ -14,7 +14,10 @@ body {
   background: rgba(22,28,48,0.96) !important;
   border-radius: 0 0 22px 22px !important;
   padding: 2px 3vw !important;
-  box-shadow: 0 10px 40px #000b !important;
+  box-shadow:
+    0 0 18px 0 #7fd9ff33,
+    0 0 32px 6px #25355c33,
+    0 10px 40px #000b !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
@@ -125,6 +128,46 @@ canvas {
   }
 }
 
+.ui-badge {
+  background: rgba(30,40,70,0.67);
+  color: #7fd;
+  font-weight: 600;
+  border-radius: 8px;
+  font-size: 1.09em;
+  margin: 0 2px 0 0;
+  padding: 2px 16px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 1px 7px #0003;
+  border: 1.5px solid #25355c;
+  display: inline-flex;
+  align-items: center;
+  min-width: 84px;
+  justify-content: center;
+  white-space: nowrap;
+  transition: font-size 0.2s;
+}
+
+.ui-options-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.07);
+  border-radius: 8px;
+  padding: 4px 10px;
+  position: relative;
+}
+
+@media (max-width: 600px) {
+  .ui-badge {
+    font-size: 0.97em;
+    min-width: 110px;
+    padding: 2px 7px;
+  }
+  .ui-options-row {
+    gap: 2.5px !important;
+  }
+}
+
 @media (max-width: 700px) {
   #ui {
     min-width: 0 !important;
@@ -172,7 +215,7 @@ canvas {
     box-shadow: 0 1px 3px #0002 !important;
     border-width: 1px !important;
     padding: 1px 2px !important;
-    min-width: 56px !important;
+    min-width: 70px !important;
   }
   #ui .ui-section {
     gap: 1px !important;
