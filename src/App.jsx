@@ -163,7 +163,7 @@ function Moon({ planetPos, moon, time, phase, labelOpacity = 1, showLabels = tru
         <meshBasicMaterial color={moon.color} />
       </mesh>
       {showLabels && (
-        <Html position={[x, y + moon.size + 0.5, 0]} center style={{ color: '#fff', fontSize: '0.7rem', textShadow: '1px 1px 3px #000', opacity: labelOpacity }}>{moon.name}</Html>
+        <Html position={[x, y + moon.size + 0.5, 0]} center style={{ color: '#fff', fontSize: '0.7rem', textShadow: '1px 1px 3px #000', opacity: labelOpacity, userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', pointerEvents: 'none' }}>{moon.name}</Html>
       )}
     </>
   );
@@ -227,7 +227,7 @@ function Planet({ color, orbit, size, speed, time, label, phase, moons = [], moo
       ))}
       {/* Nom de la planète, en couleur */}
       {showLabels && (
-        <Html position={[x, y + size + 0.7, 0]} center style={{ color: color, fontWeight: 'bold', fontSize: '0.85rem', textShadow: '1px 1px 3px #000', opacity: labelOpacity }}>{label}</Html>
+        <Html position={[x, y + size + 0.7, 0]} center style={{ color: color, fontWeight: 'bold', fontSize: '0.85rem', textShadow: '1px 1px 3px #000', opacity: labelOpacity, userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', pointerEvents: 'none' }}>{label}</Html>
       )}
       {/* Lunes */}
       {moons.map((moon, i) => (
@@ -442,7 +442,7 @@ function Asteroid({ initial, color = '#fff', trailColor = '#ff0', planets, timeS
         <meshBasicMaterial color={color} />
       </mesh>
       {name && (
-        <Html position={[pos[0], pos[1] + 1, 0]} center style={{ color: color, fontWeight: 'bold', fontSize: '0.8rem', textShadow: '1px 1px 3px #000', opacity: labelOpacity }}>{name}</Html>
+        <Html position={[pos[0], pos[1] + 1, 0]} center style={{ color: color, fontWeight: 'bold', fontSize: '0.8rem', textShadow: '1px 1px 3px #000', opacity: labelOpacity, userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', pointerEvents: 'none' }}>{name}</Html>
       )}
     </>
   );
@@ -539,7 +539,7 @@ function RealAsteroid({ a, e, phi, color, trailColor, t, name, systemRadius = 30
       </mesh>
       {/* Nom de l'astéroïde permanent, en couleur */}
       {name && (
-        <Html position={[x, y + 0.7, 0]} center style={{ color: color, fontWeight: 'bold', fontSize: '0.85rem', textShadow: '1px 1px 3px #000', opacity: 1 }}>{name}</Html>
+        <Html position={[x, y + 0.7, 0]} center style={{ color: color, fontWeight: 'bold', fontSize: '0.85rem', textShadow: '1px 1px 3px #000', opacity: 1, userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', pointerEvents: 'none' }}>{name}</Html>
       )}
     </>
   );
@@ -746,107 +746,104 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid }) {
       gap: 12,
       margin: 0
     }}>
-      <span style={{ marginRight: 10 }}>Astéroïdes dynamiques :</span>
-      <button
-        onClick={onAddAsteroid}
-        style={{
-          fontSize: '1.2rem',
-          margin: '0 2px',
-          borderRadius: 8,
-          border: 'none',
-          background: 'linear-gradient(90deg,#2a2,#4ad07a 80%)',
-          color: '#fff',
-          width: 32,
-          height: 32,
-          cursor: 'pointer',
-          boxShadow: '0 1px 4px #0006',
-          transition: 'background .2s'
-        }}
-        title="Ajouter un astéroïde"
-        aria-label="Ajouter un astéroïde"
-      >+
-      </button>
-      <button
-        onClick={onRemoveAsteroid}
-        style={{
-          fontSize: '1.2rem',
-          margin: '0 2px',
-          borderRadius: 8,
-          border: 'none',
-          background: 'linear-gradient(90deg,#a22,#e05a5a 80%)',
-          color: '#fff',
-          width: 32,
-          height: 32,
-          cursor: 'pointer',
-          boxShadow: '0 1px 4px #0006',
-          transition: 'background .2s'
-        }}
-        title="Retirer un astéroïde"
-        aria-label="Retirer un astéroïde"
-      >-
-      </button>
-      <span style={{ marginLeft: 10, fontSize: '1.08rem', fontWeight: 600, minWidth: 18, textAlign: 'center', letterSpacing: 0.5 }}>{Array.isArray(asteroids) ? asteroids.filter(ast => !ast.destroyed).length : 0}</span>
+      <div style={{display:'flex', alignItems:'center', gap:8, background:'rgba(0,0,0,0.07)', borderRadius:8, padding:'4px 10px', position:'relative'}}>
+        {/* Add Asteroid Button with hover/active effect and badge */}
+        <div style={{position:'relative', display:'inline-flex'}}>
+          <button
+            onClick={onAddAsteroid}
+            style={{
+              fontSize:'1.5em', width:36, height:36, background:'none', color:'#4de05a', border:'none', borderRadius:0, cursor:'pointer', boxShadow:'none', display:'flex', alignItems:'center', justifyContent:'center', padding:'2px 5px',
+              transition:'transform 0.13s, filter 0.13s',
+            }}
+            title="Ajouter un astéroïde"
+            aria-label="Ajouter un astéroïde"
+            onMouseDown={e=>e.currentTarget.style.transform='scale(1.18)'}
+            onMouseUp={e=>e.currentTarget.style.transform='scale(1)'}
+            onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+            onTouchStart={e=>e.currentTarget.style.transform='scale(1.18)'}
+            onTouchEnd={e=>e.currentTarget.style.transform='scale(1)'}
+            onMouseOver={e=>e.currentTarget.style.filter='brightness(1.2)'}
+            onMouseOut={e=>e.currentTarget.style.filter='brightness(1)'}
+          >
+            <span style={{fontWeight:700}}>💫</span>
+          </button>
+          {/* Badge for asteroid count */}
+          <span style={{
+            position:'absolute', top:-8, right:-10, background:'#1e233a', color:'#7fd',
+            fontSize:'0.90em', borderRadius:'50%', padding:'2px 7px', fontWeight:700,
+            border:'2px solid #222', boxShadow:'0 1.5px 6px #0006', minWidth:22, textAlign:'center', letterSpacing:0.5
+          }}>x{Array.isArray(asteroids) ? asteroids.filter(ast => !ast.destroyed).length : 0}</span>
+        </div>
+        {/* Remove Asteroid Button with hover/active effect and tooltip */}
+        <div style={{position:'relative', display:'inline-flex'}}>
+          <button
+            onClick={onRemoveAsteroid}
+            style={{
+              fontSize:'1.5em', width:36, height:36, background:'none', color:'#e53935', border:'none', borderRadius:0, cursor:'pointer', boxShadow:'none', display:'flex', alignItems:'center', justifyContent:'center', padding:'2px 5px',
+              transition:'transform 0.13s, filter 0.13s',
+            }}
+            title="Retirer un astéroïde"
+            aria-label="Retirer un astéroïde"
+            onMouseDown={e=>e.currentTarget.style.transform='scale(1.18)'}
+            onMouseUp={e=>e.currentTarget.style.transform='scale(1)'}
+            onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+            onTouchStart={e=>e.currentTarget.style.transform='scale(1.18)'}
+            onTouchEnd={e=>e.currentTarget.style.transform='scale(1)'}
+            onMouseOver={e=>e.currentTarget.style.filter='brightness(1.2)'}
+            onMouseOut={e=>e.currentTarget.style.filter='brightness(1)'}
+          >
+            <span style={{fontWeight:700}}>🗑️</span>
+          </button>
+          {/* Tooltip */}
+          <span style={{
+            position:'absolute', bottom:-30, left:'50%', transform:'translateX(-50%)',
+            background:'#222c', color:'#fff', fontSize:'0.85em', borderRadius:8, padding:'3px 10px', fontWeight:500,
+            opacity:0, pointerEvents:'none', transition:'opacity 0.18s', zIndex:2
+          }} className="remove-tooltip">Supprimer un astéroïde</span>
+        </div>
+      </div>
     </div>
   );
 }
 
-// Icône hamburger SVG
-function HamburgerIcon({ showCross, size = 32 }) {
-  // showCross == true => croix (menu ouvert), false => hamburger (menu fermé)
-  const color = '#fff';
-  const shadow = '0 1px 8px #000c';
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" style={{ display: 'block' }}>
-      {/* Hamburger (menu fermé) */}
-      <rect y={7} width={28} height={3.5} rx={2} fill={color} x={2}
-        style={{
-          transition: 'all 0.28s',
-          opacity: showCross ? 0 : 1,
-          filter: shadow,
-        }}
-      />
-      <rect y={14.5} width={28} height={3.5} rx={2} fill={color} x={2}
-        style={{
-          transition: 'all 0.22s',
-          opacity: showCross ? 0 : 1,
-          filter: shadow,
-        }}
-      />
-      <rect y={22} width={28} height={3.5} rx={2} fill={color} x={2}
-        style={{
-          transition: 'all 0.28s',
-          opacity: showCross ? 0 : 1,
-          filter: shadow,
-        }}
-      />
-      {/* Croix (menu ouvert) */}
-      <rect y={7} width={28} height={3.5} rx={2} fill={color} x={2}
-        style={{
-          transition: 'all 0.28s',
-          transform: showCross ? 'rotate(45deg) translate(5px, 8px)' : 'none',
-          opacity: showCross ? 1 : 0,
-          filter: shadow,
-          position: 'absolute',
-        }}
-      />
-      <rect y={22} width={28} height={3.5} rx={2} fill={color} x={2}
-        style={{
-          transition: 'all 0.28s',
-          transform: showCross ? 'rotate(-45deg) translate(5px, -8px)' : 'none',
-          opacity: showCross ? 1 : 0,
-          filter: shadow,
-          position: 'absolute',
-        }}
-      />
-    </svg>
-  );
+// --- Ajout : Hook pour griser/transparenter le menu après 5s sans survol sur desktop ---
+function useUiFade(timeout = 5000) {
+  const [faded, setFaded] = React.useState(false);
+  const timer = React.useRef();
+
+  React.useEffect(() => {
+    // Ne rien faire sur mobile
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+    const ui = document.getElementById('ui');
+    if (!ui) return;
+    function resetFade() {
+      setFaded(false);
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => setFaded(true), timeout);
+    }
+    function cancelFade() {
+      setFaded(false);
+      clearTimeout(timer.current);
+    }
+    resetFade();
+    ui.addEventListener('mouseenter', resetFade);
+    ui.addEventListener('mousemove', resetFade);
+    ui.addEventListener('mouseleave', resetFade);
+    ui.addEventListener('mousedown', cancelFade);
+    ui.addEventListener('touchstart', cancelFade);
+    return () => {
+      clearTimeout(timer.current);
+      ui.removeEventListener('mouseenter', resetFade);
+      ui.removeEventListener('mousemove', resetFade);
+      ui.removeEventListener('mouseleave', resetFade);
+      ui.removeEventListener('mousedown', cancelFade);
+      ui.removeEventListener('touchstart', cancelFade);
+    };
+  }, [timeout]);
+  return faded;
 }
 
 export default function App() {
-  const [status, setStatus] = React.useState('Appuyez sur "Lancer la fusée"');
-  const [launched, setLaunched] = React.useState(false);
-  const velocity = React.useRef(new THREE.Vector2(0, 0));
-  // Système de zoom et pan
   const [zoom, setZoom] = React.useState(1.5); // Zoom initial plus large (planètes telluriques visibles)
   const [cameraCenter, setCameraCenter] = React.useState({ x: 0, y: 0 }); // Centrer sur l'orbite de la Terre
   const [showLabels, setShowLabels] = React.useState(true);
@@ -859,9 +856,6 @@ export default function App() {
   const MIN_ZOOM = 0.002; // Zoom encore plus large pour TOUT voir
   const MAX_ZOOM = 6;
 
-  // Gestion du menu principal
-  const [menuVisible, setMenuVisible] = React.useState(true);
-
   // Gestion du zoom centré sur la souris
   React.useEffect(() => {
     function onWheel(e) {
@@ -869,22 +863,20 @@ export default function App() {
       const rect = document.body.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
-      const w = window.innerWidth;
-      const h = window.innerHeight;
       // Coordonnées monde avant zoom
-      const aspect = w / h;
+      const aspect = window.innerWidth / window.innerHeight;
       const viewWidth = 80 * zoom;
       const viewHeight = 80 * zoom;
-      const worldX = cameraCenter.x + (mouseX / w - 0.5) * viewWidth * aspect;
-      const worldY = cameraCenter.y - (mouseY / h - 0.5) * viewHeight;
+      const worldX = cameraCenter.x + (mouseX / window.innerWidth - 0.5) * viewWidth * aspect;
+      const worldY = cameraCenter.y - (mouseY / window.innerHeight - 0.5) * viewHeight;
       // Appliquer zoom
       let newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom - e.deltaY * 0.0025));
       // Coordonnées monde après zoom
       const newViewWidth = 80 * newZoom;
       const newViewHeight = 80 * newZoom;
       // Calculer nouveau centre pour garder le point sous la souris fixe
-      const newCenterX = worldX - (mouseX / w - 0.5) * newViewWidth * aspect;
-      const newCenterY = worldY + (mouseY / h - 0.5) * newViewHeight;
+      const newCenterX = worldX - (mouseX / window.innerWidth - 0.5) * newViewWidth * aspect;
+      const newCenterY = worldY + (mouseY / window.innerHeight - 0.5) * newViewHeight;
       setZoom(newZoom);
       setCameraCenter({ x: newCenterX, y: newCenterY });
     }
@@ -933,22 +925,6 @@ export default function App() {
     setZoom(z => Math.min(MAX_ZOOM, z / 0.8)); // Correction : dézoomer
   }
 
-  function resetRocket() {
-    setLaunched(false);
-    setStatus('Appuyez sur "Lancer la fusée"');
-  }
-  function launchRocket() {
-    if (!launched) {
-      velocity.current.set(0, 0.6 + Math.random() * 0.2);
-      setLaunched(true);
-      setStatus('Fusée lancée !');
-    }
-  }
-  function onOrbit() {
-    setStatus('Bravo ! Orbite atteinte ?!');
-    setLaunched(false);
-  }
-
   // Contrôle du temps
   const DAY_SECONDS = 86400; // 1 jour = 86400 s
 
@@ -994,178 +970,6 @@ export default function App() {
     });
   }
 
-  // Ajoute des styles responsive pour le menu et le bouton hamburger
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      @media (max-width: 600px) {
-        #ui {
-          width: 96vw !important;
-          min-width: 0 !important;
-          max-width: 98vw !important;
-          left: 0 !important;
-          right: 0 !important;
-          border-radius: 0 0 16px 16px !important;
-          padding: 12px 2vw 18px 2vw !important;
-          box-shadow: 0 6px 32px #0008;
-        }
-        #ui h1 {
-          font-size: 1.15em !important;
-          margin-top: 40px !important;
-        }
-        #ui button, #ui input, #ui select {
-          font-size: 1em !important;
-          width: 100% !important;
-          min-width: 0 !important;
-          margin-bottom: 10px !important;
-        }
-        .orbit-options {
-          flex-direction: column !important;
-          gap: 8px !important;
-        }
-        .orbit-options > * {
-          width: 100% !important;
-        }
-        .asteroid-list {
-          max-height: 20vh !important;
-          overflow-y: auto;
-        }
-        .react-draggable, .react-draggable * {
-          touch-action: none !important;
-        }
-      }
-      @media (max-width: 430px) {
-        #ui {
-          padding: 6px 1vw 10px 1vw !important;
-        }
-        #ui h1 {
-          font-size: 1em !important;
-        }
-      }
-      @media (max-width: 370px) {
-        #ui h1 {
-          font-size: 0.85em !important;
-        }
-      }
-      @media (max-width: 600px) {
-        .hamburger-mobile {
-          left: 10px !important;
-          top: 10px !important;
-          width: 38px !important;
-          height: 38px !important;
-          padding: 5px 5px !important;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    return () => document.head.removeChild(style);
-  }, []);
-
-  // --- Gestion tactile mobile/tablette ---
-  const canvasRef = React.useRef();
-  React.useEffect(() => {
-    const canvas = document.querySelector('canvas');
-    if (!canvas) return;
-    let lastTouches = null;
-    let lastCenter = null;
-    let lastDist = null;
-    let pinchZooming = false;
-    let dragging = false;
-    let dragStart = null;
-    let dragCameraStart = null;
-
-    function getTouchCenter(touches) {
-      return {
-        x: (touches[0].clientX + touches[1].clientX) / 2,
-        y: (touches[0].clientY + touches[1].clientY) / 2
-      };
-    }
-    function getTouchDist(touches) {
-      const dx = touches[0].clientX - touches[1].clientX;
-      const dy = touches[0].clientY - touches[1].clientY;
-      return Math.sqrt(dx*dx + dy*dy);
-    }
-    function onTouchStart(e) {
-      if (e.touches.length === 1) {
-        dragging = true;
-        dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        dragCameraStart = { ...cameraCenter };
-      } else if (e.touches.length === 2) {
-        pinchZooming = true;
-        lastDist = getTouchDist(e.touches);
-        lastCenter = getTouchCenter(e.touches);
-      }
-    }
-    function onTouchMove(e) {
-      if (dragging && e.touches.length === 1) {
-        const dx = e.touches[0].clientX - dragStart.x;
-        const dy = e.touches[0].clientY - dragStart.y;
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        const aspect = w / h;
-        const viewWidth = 80 * zoom;
-        const viewHeight = 80 * zoom;
-        setCameraCenter({
-          x: dragCameraStart.x - dx / w * viewWidth * aspect,
-          y: dragCameraStart.y + dy / h * viewHeight
-        });
-      } else if (pinchZooming && e.touches.length === 2) {
-        const dist = getTouchDist(e.touches);
-        const center = getTouchCenter(e.touches);
-        if (lastDist && lastCenter) {
-          // Zoom
-          let scale = dist / lastDist;
-          setZoom(z => {
-            let newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom / scale));
-            return newZoom;
-          });
-          // Pan
-          const dx = center.x - lastCenter.x;
-          const dy = center.y - lastCenter.y;
-          const w = window.innerWidth;
-          const h = window.innerHeight;
-          const aspect = w / h;
-          const viewWidth = 80 * zoom;
-          const viewHeight = 80 * zoom;
-          setCameraCenter(centerVal => ({
-            x: centerVal.x - dx / w * viewWidth * aspect,
-            y: centerVal.y + dy / h * viewHeight
-          }));
-        }
-        lastDist = dist;
-        lastCenter = center;
-      }
-      e.preventDefault();
-    }
-    function onTouchEnd(e) {
-      if (e.touches.length === 0) {
-        dragging = false;
-        pinchZooming = false;
-        dragStart = null;
-        dragCameraStart = null;
-        lastDist = null;
-        lastCenter = null;
-      } else if (e.touches.length === 1) {
-        pinchZooming = false;
-        lastDist = null;
-        lastCenter = null;
-        dragging = true;
-        dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        dragCameraStart = { ...cameraCenter };
-      }
-    }
-    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
-    canvas.addEventListener('touchend', onTouchEnd, { passive: false });
-    canvas.addEventListener('touchcancel', onTouchEnd, { passive: false });
-    return () => {
-      canvas.removeEventListener('touchstart', onTouchStart);
-      canvas.removeEventListener('touchmove', onTouchMove);
-      canvas.removeEventListener('touchend', onTouchEnd);
-      canvas.removeEventListener('touchcancel', onTouchEnd);
-    };
-  }, [cameraCenter, zoom]);
-
   // Time speed control with left/right arrows
   function handleDecreaseTimeSpeed() {
     setTimeSpeed(v => Math.max(0, v / 2));
@@ -1176,98 +980,206 @@ export default function App() {
     setPaused(false);
   }
 
+  // --- Ajout : Utiliser le hook pour griser/transparenter le menu après 5s sans survol sur desktop ---
+  const uiFaded = useUiFade(5000);
+
   return (
     <>
-      {/* Bouton Hamburger pour afficher/cacher le menu */}
-      <button
-        className="hamburger-mobile"
-        style={{
-          position: 'absolute',
-          top: 18,
-          left: 20,
-          zIndex: 1100,
-          background: menuVisible ? '#1e2a4a' : 'rgba(30,42,74,0.7)',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 8,
-          padding: '7px 9px',
-          boxShadow: '0 2px 12px #0007',
-          transition: 'background 0.2s',
-          cursor: 'pointer',
-          width: 44,
-          height: 44,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        onClick={() => setMenuVisible(v => !v)}
-        aria-label={menuVisible ? 'Cacher le menu' : 'Afficher le menu'}
-      >
-        <HamburgerIcon showCross={menuVisible} size={28} />
-      </button>
       <div
         id="ui"
         onMouseEnter={() => setIsUiHovered(true)}
         onMouseLeave={() => setIsUiHovered(false)}
         style={{
-          display: menuVisible ? undefined : 'none',
-          transition: 'display 0.2s',
+          position: 'fixed',
+          top: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 99999,
+          background: 'rgba(22,28,48,0.96)',
+          borderRadius: '0 0 22px 22px',
+          padding: '2px 3vw',
+          boxShadow: '0 10px 40px #000b',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          minWidth: 340,
+          maxWidth: '99vw',
+          gap: 22,
+          border: '1.5px solid #25355c',
+          backdropFilter: 'blur(7px) saturate(1.2)',
+          transition: 'opacity 0.5s',
+          opacity: uiFaded ? 0.38 : 1,
         }}
       >
-        <h1 style={{
-          fontSize: '1.7em',
-          fontWeight: 700,
-          margin: '32px 0 18px 0', // augmente le margin-top
-          textAlign: 'center',
-          letterSpacing: '0.03em',
-          color: '#fff',
-          textShadow: '0 2px 8px #000a',
-        }}>Rocket Launch 2D</h1>
-        <button onClick={launchRocket}>Lancer la fusée</button>
-        <p id="status">{status}</p>
-        <div style={{marginTop:8}}>
-          <button onClick={handleZoomIn} style={{marginRight:8}}>Zoom +</button>
-          <button onClick={handleZoomOut}>Zoom -</button>
-        </div>
-        <div style={{marginTop:8}}>
-          <button onClick={() => setShowLabels(v => !v)}>
-            {showLabels ? 'Cacher les noms' : 'Afficher les noms'}
-          </button>
-        </div>
-        <div style={{marginTop:16, display:'flex', gap:8, alignItems:'center'}}>
-          <span
-            style={{color:'#fff', fontSize:'1.2em', marginRight:6, cursor:'pointer'}}
+        <div style={{display:'inline-flex', alignItems:'center', gap: '2px'}}>
+          <button
+            onClick={handleDecreaseTimeSpeed}
             title="Diminuer la vitesse du temps"
             aria-label="Diminuer la vitesse du temps"
-            onClick={handleDecreaseTimeSpeed}
-          >⏪</span>
-          <input type="range" min="0.05" max="256" step="0.01" value={timeSpeed}
-            onChange={handleSliderChange} style={{width:120}} />
-          <span
-            style={{color:'#fff', fontSize:'1.2em', marginLeft:6, cursor:'pointer'}}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderRadius: 0,
+              width: 'auto',
+              height: 'auto',
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'none',
+              fontSize: '1.6em',
+              color: '#7fd',
+              transition: 'color 0.19s',
+              outline: 'none',
+              cursor: 'pointer',
+              padding: '2px 5px',
+            }}
+          >
+            <span style={{display:'flex',alignItems:'center',justifyContent:'center',width:'100%',height:'100%'}}>⏪</span>
+          </button>
+          <input
+            type="range"
+            min="0.05"
+            max="256"
+            step="0.01"
+            value={timeSpeed}
+            onChange={handleSliderChange}
+            style={{
+              width:140,
+              accentColor:'#7fd',
+              background:'linear-gradient(90deg,#1e233a 60%,#25355c 100%)',
+              borderRadius:10,
+              height:10,
+              margin:0,
+              boxShadow:'0 1.5px 8px #0004',
+              border:'1.5px solid #25355c',
+              outline:'none',
+              transition:'background 0.2s',
+              appearance:'none',
+              padding: 0,
+            }}
+          />
+          <button
+            onClick={handleIncreaseTimeSpeed}
             title="Augmenter la vitesse du temps"
             aria-label="Augmenter la vitesse du temps"
-            onClick={handleIncreaseTimeSpeed}
-          >⏩</span>
-          <button onClick={() => setPaused(p => !p)}>{paused ? '▶️' : '⏸️'}</button>
-          <button title="Réinitialiser la vitesse" aria-label="Vitesse normale"
-            onClick={() => { setTimeSpeed(1); setPaused(false); }}
-            style={{fontWeight:'bold', fontSize:'1.1em'}}>
-            🔄
+            style={{
+              background: 'none',
+              border: 'none',
+              borderRadius: 0,
+              width: 'auto',
+              height: 'auto',
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'none',
+              fontSize: '1.6em',
+              color: '#7fd',
+              transition: 'color 0.19s',
+              outline: 'none',
+              cursor: 'pointer',
+              padding: '2px 5px',
+            }}
+          >
+            <span style={{display:'flex',alignItems:'center',justifyContent:'center',width:'100%',height:'100%'}}>⏩</span>
           </button>
-          <span style={{minWidth:60, color:'#fff', alignSelf:'center'}}>x{timeSpeed.toFixed(2)}</span>
-          <span style={{color:'#7fd', fontSize:'1em', marginLeft:8}}>
-            {getSimulatedDaysPerSecond(timeSpeed)} j/s
+          {/* BADGES VITESSE */}
+          <span className="ui-badge" style={{
+            background:'rgba(30,40,70,0.67)',
+            color:'#7fd',
+            fontWeight:600,
+            borderRadius:8,
+            fontSize:'1.09em',
+            margin:'0 7px 0 6px',
+            padding:'2px 9px',
+            letterSpacing:'0.04em',
+            boxShadow:'0 1px 7px #0003',
+            border:'1.5px solid #25355c',
+            display:'inline-flex',
+            alignItems:'center',
+            minWidth:64,
+            justifyContent:'center',
+          }}>
+            ×{Math.round(timeSpeed)}
           </span>
+          <span className="ui-badge" style={{
+            background:'rgba(30,40,70,0.67)',
+            color:'#7fd',
+            fontWeight:600,
+            borderRadius:8,
+            fontSize:'1.09em',
+            margin:'0 2px 0 0',
+            padding:'2px 9px',
+            letterSpacing:'0.04em',
+            boxShadow:'0 1px 7px #0003',
+            border:'1.5px solid #25355c',
+            display:'inline-flex',
+            alignItems:'center',
+            minWidth:64,
+            justifyContent:'center',
+          }}>
+            {Math.round(getSimulatedDaysPerSecond(timeSpeed))} j/s
+          </span>
+          <button
+            onClick={() => setPaused(p => !p)}
+            title="Pause / Lecture"
+            aria-label="Pause / Lecture"
+            style={{
+              background: paused ? 'linear-gradient(135deg,#1e7a22,#4de05a 80%)' : 'none',
+              border: 'none',
+              borderRadius: paused ? '50%' : 0,
+              width: paused ? 44 : 'auto',
+              height: paused ? 44 : 'auto',
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: paused ? '0 1.5px 8px #0006' : 'none',
+              fontSize: '1.5em',
+              color: paused ? '#fff' : '#7fd',
+              transition: 'background 0.19s, box-shadow 0.19s, border-radius 0.19s, width 0.19s, height 0.19s',
+              outline: 'none',
+              cursor: 'pointer',
+              backdropFilter: paused ? 'blur(2px) saturate(1.2)' : 'none',
+              WebkitBackdropFilter: paused ? 'blur(2px) saturate(1.2)' : 'none',
+            }}
+          >{paused ? '▶️' : '⏸️'}</button>
+          <button
+            title="Réinitialiser la vitesse"
+            aria-label="Vitesse normale"
+            onClick={() => { setTimeSpeed(1); setPaused(false); }}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderRadius: 0,
+              width: 'auto',
+              height: 'auto',
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'none',
+              fontSize: '1.5em',
+              color: '#7fd',
+              transition: 'color 0.19s',
+              outline: 'none',
+              cursor: 'pointer',
+              padding: '2px 5px',
+            }}
+          >
+            <span style={{display:'flex',alignItems:'center',justifyContent:'center',width:'100%',height:'100%'}}>🔄</span>
+          </button>
         </div>
-        {/* --- Panneau d’options astéroïdes dynamiques --- */}
-        <div style={{marginTop:18}}>
-          <SolarSystemOptions
-            asteroids={asteroids}
-            onAddAsteroid={handleAddAsteroid}
-            onRemoveAsteroid={handleRemoveAsteroid}
-          />
+        {/* Séparateur vertical entre contrôles temps et astéroïdes */}
+        <div style={{width:18, height:38, display:'inline-flex', alignItems:'center', justifyContent:'center'}}>
+          <div style={{width:2, height:28, background:'linear-gradient(180deg,#233,#7fd 80%)', borderRadius:3, opacity:0.16}}></div>
         </div>
+        <SolarSystemOptions
+          asteroids={asteroids}
+          onAddAsteroid={handleAddAsteroid}
+          onRemoveAsteroid={handleRemoveAsteroid}
+        />
       </div>
       <Canvas
         style={{ width: '100vw', height: '100vh', cursor: dragging.current ? 'grabbing' : 'grab' }}
@@ -1281,7 +1193,7 @@ export default function App() {
         onPointerMove={e => {
           if (dragging.current && !isUiHovered) {
             setCameraCenter(c => ({
-              x: c.x - (e.movementX * zoom * 0.06), // drag encore plus doux
+              x: c.x - (e.movementX * zoom * 0.06),
               y: c.y + (e.movementY * zoom * 0.06)
             }));
           }
