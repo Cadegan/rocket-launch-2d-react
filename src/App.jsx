@@ -1116,7 +1116,7 @@ export default function App() {
           // Zoom
           let scale = dist / lastDist;
           setZoom(z => {
-            let newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z / scale));
+            let newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom / scale));
             return newZoom;
           });
           // Pan
@@ -1165,6 +1165,16 @@ export default function App() {
       canvas.removeEventListener('touchcancel', onTouchEnd);
     };
   }, [cameraCenter, zoom]);
+
+  // Time speed control with left/right arrows
+  function handleDecreaseTimeSpeed() {
+    setTimeSpeed(v => Math.max(0, v / 2));
+    setPaused(false);
+  }
+  function handleIncreaseTimeSpeed() {
+    setTimeSpeed(v => Math.min(256, v === 0 ? 0.05 : v * 2));
+    setPaused(false);
+  }
 
   return (
     <>
@@ -1225,10 +1235,20 @@ export default function App() {
           </button>
         </div>
         <div style={{marginTop:16, display:'flex', gap:8, alignItems:'center'}}>
-          <span style={{color:'#fff', fontSize:'1.2em', marginRight:6}}>⏪</span>
-          <input type="range" min="0.05" max="64" step="0.01" value={timeSpeed}
+          <span
+            style={{color:'#fff', fontSize:'1.2em', marginRight:6, cursor:'pointer'}}
+            title="Diminuer la vitesse du temps"
+            aria-label="Diminuer la vitesse du temps"
+            onClick={handleDecreaseTimeSpeed}
+          >⏪</span>
+          <input type="range" min="0.05" max="256" step="0.01" value={timeSpeed}
             onChange={handleSliderChange} style={{width:120}} />
-          <span style={{color:'#fff', fontSize:'1.2em', marginLeft:6}}>⏩</span>
+          <span
+            style={{color:'#fff', fontSize:'1.2em', marginLeft:6, cursor:'pointer'}}
+            title="Augmenter la vitesse du temps"
+            aria-label="Augmenter la vitesse du temps"
+            onClick={handleIncreaseTimeSpeed}
+          >⏩</span>
           <button onClick={() => setPaused(p => !p)}>{paused ? '▶️' : '⏸️'}</button>
           <button title="Réinitialiser la vitesse" aria-label="Vitesse normale"
             onClick={() => { setTimeSpeed(1); setPaused(false); }}
