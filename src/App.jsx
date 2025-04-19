@@ -1061,6 +1061,111 @@ export default function App() {
     return () => document.head.removeChild(style);
   }, []);
 
+  // --- Gestion tactile mobile/tablette ---
+  const canvasRef = React.useRef();
+  React.useEffect(() => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas) return;
+    let lastTouches = null;
+    let lastCenter = null;
+    let lastDist = null;
+    let pinchZooming = false;
+    let dragging = false;
+    let dragStart = null;
+    let dragCameraStart = null;
+
+    function getTouchCenter(touches) {
+      return {
+        x: (touches[0].clientX + touches[1].clientX) / 2,
+        y: (touches[0].clientY + touches[1].clientY) / 2
+      };
+    }
+    function getTouchDist(touches) {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx*dx + dy*dy);
+    }
+    function onTouchStart(e) {
+      if (e.touches.length === 1) {
+        dragging = true;
+        dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        dragCameraStart = { ...cameraCenter };
+      } else if (e.touches.length === 2) {
+        pinchZooming = true;
+        lastDist = getTouchDist(e.touches);
+        lastCenter = getTouchCenter(e.touches);
+      }
+    }
+    function onTouchMove(e) {
+      if (dragging && e.touches.length === 1) {
+        const dx = e.touches[0].clientX - dragStart.x;
+        const dy = e.touches[0].clientY - dragStart.y;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const aspect = w / h;
+        const viewWidth = 80 * zoom;
+        const viewHeight = 80 * zoom;
+        setCameraCenter({
+          x: dragCameraStart.x - dx / w * viewWidth * aspect,
+          y: dragCameraStart.y + dy / h * viewHeight
+        });
+      } else if (pinchZooming && e.touches.length === 2) {
+        const dist = getTouchDist(e.touches);
+        const center = getTouchCenter(e.touches);
+        if (lastDist && lastCenter) {
+          // Zoom
+          let scale = dist / lastDist;
+          setZoom(z => {
+            let newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z / scale));
+            return newZoom;
+          });
+          // Pan
+          const dx = center.x - lastCenter.x;
+          const dy = center.y - lastCenter.y;
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          const aspect = w / h;
+          const viewWidth = 80 * zoom;
+          const viewHeight = 80 * zoom;
+          setCameraCenter(centerVal => ({
+            x: centerVal.x - dx / w * viewWidth * aspect,
+            y: centerVal.y + dy / h * viewHeight
+          }));
+        }
+        lastDist = dist;
+        lastCenter = center;
+      }
+      e.preventDefault();
+    }
+    function onTouchEnd(e) {
+      if (e.touches.length === 0) {
+        dragging = false;
+        pinchZooming = false;
+        dragStart = null;
+        dragCameraStart = null;
+        lastDist = null;
+        lastCenter = null;
+      } else if (e.touches.length === 1) {
+        pinchZooming = false;
+        lastDist = null;
+        lastCenter = null;
+        dragging = true;
+        dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        dragCameraStart = { ...cameraCenter };
+      }
+    }
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', onTouchEnd, { passive: false });
+    canvas.addEventListener('touchcancel', onTouchEnd, { passive: false });
+    return () => {
+      canvas.removeEventListener('touchstart', onTouchStart);
+      canvas.removeEventListener('touchmove', onTouchMove);
+      canvas.removeEventListener('touchend', onTouchEnd);
+      canvas.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [cameraCenter, zoom]);
+
   return (
     <>
       {/* Bouton Hamburger pour afficher/cacher le menu */}

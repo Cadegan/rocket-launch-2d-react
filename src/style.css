@@ -36,3 +36,13 @@ button:hover {
   -ms-user-select: none !important;
   pointer-events: none !important;
 }
+canvas {
+  width: 100vw !important;
+  height: 100vh !important;
+  display: block;
+  touch-action: none; /* Désactive le scroll/pinch natif sur le canvas */
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 0;
+}
