@@ -186,7 +186,7 @@ function Planet({ color, orbit, size, speed, time, label, phase, moons = [], moo
   const e = typeof ecc === 'number' ? ecc : 0;
   const a = orbit;
   // Centre du système = (0,0)
-  const [x, y] = getEllipsePosition(0, 0, a, e, phase, angle-phase);
+  const [x, y] = getEllipsePosition(0, 0, a, e, phase || 0, angle-phase);
   // Couleur d'atmosphère (bleu pour Terre, orange pour Mars, etc.)
   let atmColor = 'rgba(30,144,255,0.4)';
   let atmOuter = 'rgba(30,144,255,0)';
@@ -1171,24 +1171,6 @@ export default function App() {
             <span style={{display:'flex',alignItems:'center',justifyContent:'center',width:'100%',height:'100%'}}>⏩</span>
           </button>
           {/* BADGES VITESSE */}
-          <span className="ui-badge" style={{
-            background:'rgba(30,40,70,0.67)',
-            color:'#7fd',
-            fontWeight:600,
-            borderRadius:8,
-            fontSize:'1.09em',
-            margin:'0 7px 0 6px',
-            padding:'2px 9px',
-            letterSpacing:'0.04em',
-            boxShadow:'0 1px 7px #0003',
-            border:'1.5px solid #25355c',
-            display:'inline-flex',
-            alignItems:'center',
-            minWidth:64,
-            justifyContent:'center',
-          }}>
-            ×{Math.round(timeSpeed)}
-          </span>
           <span className="ui-badge" style={{
             background:'rgba(30,40,70,0.67)',
             color:'#7fd',
