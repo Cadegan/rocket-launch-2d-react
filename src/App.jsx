@@ -794,46 +794,8 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid, startA
       gap: 12,
       margin: 0
     }}>
-      <div className="ui-options-row" style={{display:'flex', alignItems:'center', gap:8, background:'rgba(0,0,0,0.07)', borderRadius:8, padding:'4px 10px', position:'relative'}}>
-        {/* Option : afficher/cacher les noms des astres */}
-        <button
-          onClick={() => onToggleLabels?.()}
-          title={showLabels ? "Cacher les noms des astres" : "Afficher les noms des astres"}
-          aria-label={showLabels ? "Cacher les noms des astres" : "Afficher les noms des astres"}
-          style={{
-            background: showLabels ? 'linear-gradient(135deg,#1e233a,#25355c 80%)' : 'none',
-            border: '1.5px solid #25355c',
-            borderRadius: 8,
-            width: 36,
-            height: 36,
-            marginRight: 7,
-            marginLeft: 2,
-            color: '#7fd',
-            fontSize: '1.22em',
-            fontWeight: 700,
-            cursor: 'pointer',
-            boxShadow: '0 1.5px 6px #0006',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'background 0.18s, color 0.18s',
-            outline: 'none',
-            userSelect: 'none',
-          }}
-        >
-          {showLabels ? '👁️' : '🙈'}
-        </button>
-        {/* Séparateur vertical */}
-        <span style={{
-          display: 'inline-block',
-          width: 1.6,
-          height: 32,
-          background: 'linear-gradient(180deg,#25355c 70%,#1e233a 100%)',
-          margin: '0 10px',
-          borderRadius: 2,
-          opacity: 0.7,
-        }} />
-        {/* Add Asteroid Button with hover/active effect and badge */}
+      <div className="ui-options-row" style={{display:'flex', alignItems:'center', gap:8, background:'rgba(0,0,0,0.07)', borderRadius:8, padding:0, position:'relative'}}>
+        {/* Bouton pour générer les astéroïdes */}
         <div style={{position:'relative', display:'inline-flex'}}>
           <button
             onMouseDown={startAddAsteroid}
@@ -843,7 +805,7 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid, startA
             onTouchEnd={stopAddAsteroid}
             onClick={onAddAsteroid}
             style={{
-              fontSize:'1.5em', width:36, height:36, background:'none', color:'#4de05a', border:'none', borderRadius:0, cursor:'pointer', boxShadow:'none', display:'flex', alignItems:'center', justifyContent:'center', padding:'2px 5px',
+              fontSize:'1.5em', width:36, height:36, background:'none', color:'#4de05a', border:'none', borderRadius:0, cursor:'pointer', boxShadow:'none', display:'flex', alignItems:'center', justifyContent:'center', padding:0,
               transition:'transform 0.13s, filter 0.13s',
             }}
             title="Ajouter un astéroïde"
@@ -866,7 +828,7 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid, startA
           <button
             onClick={onRemoveAsteroid}
             style={{
-              fontSize:'1.5em', width:36, height:36, background:'none', color:'#e53935', border:'none', borderRadius:0, cursor:'pointer', boxShadow:'none', display:'flex', alignItems:'center', justifyContent:'center', padding:'2px 5px',
+              fontSize:'1.5em', width:36, height:36, background:'none', color:'#e53935', border:'none', borderRadius:0, cursor:'pointer', boxShadow:'none', display:'flex', alignItems:'center', justifyContent:'center', padding:0,
               transition:'transform 0.13s, filter 0.13s',
             }}
             title="Retirer un astéroïde"
@@ -1160,7 +1122,7 @@ export default function App() {
               padding: '2px 5px',
             }}
           >
-            <span style={{display:'flex',alignItems:'center',justifyContent:'center',width:'100%',height:'100%'}}>⏪</span>
+            ⇠
           </button>
           <input
             type="range"
@@ -1207,7 +1169,7 @@ export default function App() {
               padding: '2px 5px',
             }}
           >
-            <span style={{display:'flex',alignItems:'center',justifyContent:'center',width:'100%',height:'100%'}}>⏩</span>
+            ⇢
           </button>
           {/* BADGES VITESSE */}
           <span className="ui-badge" style={{
@@ -1251,7 +1213,7 @@ export default function App() {
               backdropFilter: paused ? 'blur(2px) saturate(1.2)' : 'none',
               WebkitBackdropFilter: paused ? 'blur(2px) saturate(1.2)' : 'none',
             }}
-          >{paused ? '▶️' : '⏸️'}</button>
+          >⏏︎</button>
           <button
             title="Réinitialiser la vitesse"
             aria-label="Vitesse normale"
@@ -1275,7 +1237,7 @@ export default function App() {
               padding: '2px 5px',
             }}
           >
-            <span style={{display:'flex',alignItems:'center',justifyContent:'center',width:'100%',height:'100%'}}>🔄</span>
+            ♻︎
           </button>
         </div>
         <ErrorBoundary>
@@ -1363,6 +1325,19 @@ export default function App() {
           }}
         >
           －
+        </button>
+      </div>
+      {/* --- BOTTOM RIGHT FLOATING BUTTON --- */}
+      <div className="labels-fab">
+        <button
+          title={showLabels ? "Cacher les noms des astres" : "Afficher les noms des astres"}
+          aria-label={showLabels ? "Cacher les noms des astres" : "Afficher les noms des astres"}
+          onClick={() => setShowLabels(v => !v)}
+          style={{
+            fontSize:'1.3em', background: showLabels ? 'linear-gradient(135deg, #1e233a, #25355c 80%)' : 'linear-gradient(135deg, #25355c, #1e233a 80%)', color: showLabels ? '#7fd' : '#aaa', border: '1.5px solid #25355c', borderRadius: 9, width: 38, height: 38, margin: '2px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 7px #0003', fontWeight: 700, cursor: 'pointer', transition: 'background 0.18s, color 0.18s', zIndex: 2147483647
+          }}
+        >
+          {showLabels ? '👁️' : '🙈'}
         </button>
       </div>
       <Canvas
