@@ -800,69 +800,32 @@ function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid, startA
   }
   // Style homogène avec le panneau principal UI
   return (
-    <div style={{
-      background: 'rgba(20,24,36,0.85)',
-      borderRadius: 12,
-      padding: '12px 18px 10px 18px',
-      display: 'flex',
-      alignItems: 'center',
-      minWidth: 0,
-      width: '100vw',
-      maxWidth: '100vw',
-      color: '#fff',
-      fontSize: '1.08rem',
-      fontFamily: 'inherit',
-      userSelect: 'none',
-      gap: 12,
-      margin: 0
-    }}>
-      <div className="ui-options-row" style={{display:'flex', alignItems:'center', gap:8, background:'rgba(0,0,0,0.07)', borderRadius:8, padding:0, position:'relative'}}>
-        {/* Bouton pour générer les astéroïdes */}
-        <div style={{position:'relative', display:'inline-flex'}}>
-          <button
-            onMouseDown={startAddAsteroid}
-            onMouseUp={stopAddAsteroid}
-            onMouseLeave={stopAddAsteroid}
-            onTouchStart={startAddAsteroid}
-            onTouchEnd={stopAddAsteroid}
-            onClick={onAddAsteroid}
-            style={{
-              fontSize:'1.5em', width:36, height:36, background:'none', color:'#4de05a', border:'none', borderRadius:0, cursor:'pointer', boxShadow:'none', display:'flex', alignItems:'center', justifyContent:'center', padding:0,
-              transition:'transform 0.13s, filter 0.13s',
-            }}
-            title="Ajouter un astéroïde"
-            aria-label="Ajouter un astéroïde"
-            onMouseDownCapture={e=>e.currentTarget.style.transform='scale(1.18)'}
-            onMouseUpCapture={e=>e.currentTarget.style.transform='scale(1)'}
-            onMouseOver={e=>e.currentTarget.style.filter='brightness(1.2)'}
-            onMouseOut={e=>e.currentTarget.style.filter='brightness(1)'}
-          >
-            <span style={{fontWeight:700}}>💫</span>
-          </button>
-          {/* Badge for asteroid count */}
-          <span style={{
-            position:'absolute', top:-8, right:-10, background:'#1e233a', color:'#7fd',
-            fontSize:'0.90em', borderRadius:'50%', padding:'2px 7px', fontWeight:700,
-            border:'2px solid #222', boxShadow:'0 1.5px 6px #0006', minWidth:22, textAlign:'center', letterSpacing:0.5
-          }}>x{Array.isArray(asteroids) ? asteroids.filter(ast => !ast.destroyed).length : 0}</span>
-        </div>
-        <div style={{position:'relative', display:'inline-flex'}}>
-          <button
-            onClick={onRemoveAsteroid}
-            style={{
-              fontSize:'1.5em', width:36, height:36, background:'none', color:'#e53935', border:'none', borderRadius:0, cursor:'pointer', boxShadow:'none', display:'flex', alignItems:'center', justifyContent:'center', padding:0,
-              transition:'transform 0.13s, filter 0.13s',
-            }}
-            title="Retirer un astéroïde"
-            aria-label="Retirer un astéroïde"
-            onMouseDown={e=>e.currentTarget.style.transform='scale(1.18)'}
-            onMouseUp={e=>e.currentTarget.style.transform='scale(1)'}
-            onMouseOver={e=>e.currentTarget.style.filter='brightness(1.2)'}
-            onMouseOut={e=>e.currentTarget.style.filter='brightness(1)'}
-          >
-            <span style={{fontWeight:700}}>🗑️</span>
-          </button>
-        </div>
+    <div className="ui-options-row">
+      {/* Bouton pour générer les astéroïdes */}
+      <div className="ui-button">
+        <button
+          onMouseDown={startAddAsteroid}
+          onMouseUp={stopAddAsteroid}
+          onMouseLeave={stopAddAsteroid}
+          onTouchStart={startAddAsteroid}
+          onTouchEnd={stopAddAsteroid}
+          onClick={onAddAsteroid}
+          title="Ajouter un astéroïde"
+          aria-label="Ajouter un astéroïde"
+        >
+          <span>💫</span>
+        </button>
+        {/* Badge for asteroid count */}
+        <span className="ui-badge">{Array.isArray(asteroids) ? asteroids.filter(ast => !ast.destroyed).length : 0}</span>
+      </div>
+      <div className="ui-button">
+        <button
+          onClick={onRemoveAsteroid}
+          title="Retirer un astéroïde"
+          aria-label="Retirer un astéroïde"
+        >
+          <span>🗑️</span>
+        </button>
       </div>
     </div>
   );
@@ -1092,176 +1055,17 @@ export default function App() {
 
   return (
     <>
-      <div
-        id="ui"
-        onMouseEnter={() => setIsUiHovered(true)}
-        onMouseLeave={() => setIsUiHovered(false)}
-        onTouchStart={() => setIsUiHovered(true)}
-        onTouchEnd={() => setIsUiHovered(false)}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 99999,
-          background: 'rgba(22,28,48,0.96)',
-          borderRadius: '0 0 22px 22px',
-          padding: '2px 3vw',
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          minWidth: 0,
-          width: '100vw',
-          maxWidth: '100vw',
-          gap: 22,
-          border: '1.5px solid #25355c',
-          backdropFilter: 'blur(7px) saturate(1.2)',
-          transition: 'opacity 0.5s',
-          opacity: uiFaded ? 0.38 : 1,
-        }}
-      >
-        <div className="time-controls-row" style={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '100%',
-          height: 'auto',
-        }}>
-          <button
-            onClick={handleDecreaseTimeSpeed}
-            title="Diminuer la vitesse du temps"
-            aria-label="Diminuer la vitesse du temps"
-            style={{
-              background: 'none',
-              border: 'none',
-              borderRadius: 0,
-              width: 'auto',
-              height: 'auto',
-              margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: 'none',
-              fontSize: '1.6em',
-              color: '#7fd',
-              transition: 'color 0.19s',
-              outline: 'none',
-              cursor: 'pointer',
-              padding: '2px 5px',
-            }}
-          >⇠</button>
-          <input
-            type="range"
-            min="0.05"
-            max="256"
-            step="0.01"
-            value={timeSpeed}
-            onChange={handleSliderChange}
-            style={{
-              width:140,
-              accentColor:'#7fd',
-              background:'linear-gradient(90deg,#1e233a,#25355c 60%)',
-              borderRadius:10,
-              height:10,
-              margin:0,
-              boxShadow:'0 1.5px 8px #0004',
-              border:'1.5px solid #25355c',
-              outline:'none',
-              transition:'background 0.2s',
-              appearance:'none',
-              padding: 0,
-            }}
-          />
-          <button
-            onClick={handleIncreaseTimeSpeed}
-            title="Augmenter la vitesse du temps"
-            aria-label="Augmenter la vitesse du temps"
-            style={{
-              background: 'none',
-              border: 'none',
-              borderRadius: 0,
-              width: 'auto',
-              height: 'auto',
-              margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: 'none',
-              fontSize: '1.6em',
-              color: '#7fd',
-              transition: 'color 0.19s',
-              outline: 'none',
-              cursor: 'pointer',
-              padding: '2px 5px',
-            }}
-          >⇢</button>
+      {/* --- STYLES CSS EXTERNES --- */}
+      {/* Tous les styles ont été déplacés dans style.css */}
+      <div id="ui" onMouseEnter={() => setIsUiHovered(true)} onMouseLeave={() => setIsUiHovered(false)} onTouchStart={() => setIsUiHovered(true)} onTouchEnd={() => setIsUiHovered(false)}>
+        <div className="time-controls-row">
+          <button onClick={handleDecreaseTimeSpeed} title="Diminuer la vitesse du temps" aria-label="Diminuer la vitesse du temps">⇠</button>
+          <input type="range" min="0.05" max="256" step="0.01" value={timeSpeed} onChange={handleSliderChange} />
+          <button onClick={handleIncreaseTimeSpeed} title="Augmenter la vitesse du temps" aria-label="Augmenter la vitesse du temps">⇢</button>
           {/* BADGES VITESSE */}
-          <span className="ui-badge" style={{
-            background:'rgba(30,40,70,0.67)',
-            color:'#7fd',
-            fontWeight:600,
-            borderRadius:8,
-            fontSize:'1.09em',
-            margin:'0 2px 0 0',
-            padding:'2px 16px',
-            letterSpacing:'0.04em',
-            boxShadow:'0 1px 7px #0003',
-            border:'1.5px solid #25355c',
-            display:'inline-flex',
-            alignItems:'center',
-            minWidth:84,
-            justifyContent:'center',
-          }}>
-            {getSimulatedDaysPerSecond(timeSpeed)} j/s
-          </span>
-          <button
-            onClick={() => setPaused(p => !p)}
-            title="Pause / Lecture"
-            aria-label="Pause / Lecture"
-            style={{
-              background: paused ? 'linear-gradient(135deg,#1e7a22,#4de05a 80%)' : 'none',
-              border: 'none',
-              borderRadius: paused ? '50%' : 0,
-              width: paused ? 44 : 'auto',
-              height: paused ? 44 : 'auto',
-              margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: paused ? '0 1.5px 8px #0006' : 'none',
-              fontSize: '1.5em',
-              color: paused ? '#fff' : '#7fd',
-              transition: 'background 0.19s, box-shadow 0.19s, border-radius 0.19s, width 0.19s, height 0.19s',
-              outline: 'none',
-              cursor: 'pointer',
-              backdropFilter: paused ? 'blur(2px) saturate(1.2)' : 'none',
-              WebkitBackdropFilter: paused ? 'blur(2px) saturate(1.2)' : 'none',
-            }}
-          >⏏︎</button>
-          <button
-            title="Réinitialiser la vitesse"
-            aria-label="Vitesse normale"
-            onClick={() => { setTimeSpeed(1); setPaused(false); }}
-            style={{
-              background: 'none',
-              border: 'none',
-              borderRadius: 0,
-              width: 'auto',
-              height: 'auto',
-              margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: 'none',
-              fontSize: '1.6em',
-              color: '#7fd',
-              transition: 'color 0.19s',
-              outline: 'none',
-              cursor: 'pointer',
-              padding: '2px 5px',
-            }}
-          >♻︎</button>
+          <span className="ui-badge">{getSimulatedDaysPerSecond(timeSpeed)} j/s</span>
+          <button onClick={() => setPaused(p => !p)} title="Pause / Lecture" aria-label="Pause / Lecture">⏏︎</button>
+          <button onClick={() => { setTimeSpeed(1); setPaused(false); }} title="Réinitialiser la vitesse" aria-label="Vitesse normale">♻︎</button>
         </div>
         <ErrorBoundary>
           <SolarSystemOptions
@@ -1276,111 +1080,26 @@ export default function App() {
         </ErrorBoundary>
       </div>
       {/* --- BOUTONS ZOOM EN BAS À GAUCHE --- */}
-      <div style={{
-        position: 'fixed',
-        left: 0,
-        bottom: 0,
-        zIndex: 2147483647,
-        padding: '12px 10px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-        pointerEvents: 'none',
-      }}>
-        <button
-          className="ripple"
-          onMouseDown={e => { startZoomIn(); addRipple(e); }}
-          onMouseUp={stopZoomIn}
-          onMouseLeave={stopZoomIn}
-          onTouchStart={e => { startZoomIn(); addRipple(e); }}
-          onTouchEnd={stopZoomIn}
-          aria-label="Zoomer"
-          title="Zoomer"
-          style={{
-            width: 38,
-            height: 38,
-            background: 'rgba(30,40,70,0.82)',
-            color: '#7fd',
-            border: 'none',
-            borderRadius: 12,
-            boxShadow: '0 2px 10px #0005',
-            fontSize: '1.55em',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 4,
-            cursor: 'pointer',
-            pointerEvents: 'auto',
-            transition: 'background 0.18s, color 0.18s',
-            outline: 'none',
-            userSelect: 'none',
-          }}
-        >
-          ＋
-        </button>
-        <button
-          className="ripple"
-          onMouseDown={e => { startZoomOut(); addRipple(e); }}
-          onMouseUp={stopZoomOut}
-          onMouseLeave={stopZoomOut}
-          onTouchStart={e => { startZoomOut(); addRipple(e); }}
-          onTouchEnd={stopZoomOut}
-          aria-label="Dézoomer"
-          title="Dézoomer"
-          style={{
-            width: 38,
-            height: 38,
-            background: 'rgba(30,40,70,0.82)',
-            color: '#7fd',
-            border: 'none',
-            borderRadius: 12,
-            boxShadow: '0 2px 10px #0005',
-            fontSize: '1.55em',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginTop: 4,
-            cursor: 'pointer',
-            pointerEvents: 'auto',
-            transition: 'background 0.18s, color 0.18s',
-            outline: 'none',
-            userSelect: 'none',
-          }}
-        >
-          －
-        </button>
+      <div className="zoom-controls">
+        <button className="ripple" onMouseDown={e => { startZoomIn(); addRipple(e); }} onMouseUp={stopZoomIn} onMouseLeave={stopZoomIn} onTouchStart={e => { startZoomIn(); addRipple(e); }} onTouchEnd={stopZoomIn} aria-label="Zoomer" title="Zoomer">＋</button>
+        <button className="ripple" onMouseDown={e => { startZoomOut(); addRipple(e); }} onMouseUp={stopZoomOut} onMouseLeave={stopZoomOut} onTouchStart={e => { startZoomOut(); addRipple(e); }} onTouchEnd={stopZoomOut} aria-label="Dézoomer" title="Dézoomer">－</button>
       </div>
       {/* --- BOTTOM RIGHT FLOATING BUTTON --- */}
       <div className="labels-fab">
-        <button
-          title={showLabels ? "Cacher les noms des astres" : "Afficher les noms des astres"}
-          aria-label={showLabels ? "Cacher les noms des astres" : "Afficher les noms des astres"}
-          onClick={() => setShowLabels(v => !v)}
-          style={{
-            fontSize:'1.3em', background: showLabels ? 'linear-gradient(135deg, #1e233a, #25355c 80%)' : 'linear-gradient(135deg, #25355c, #1e233a 80%)', color: showLabels ? '#7fd' : '#aaa', border: '1.5px solid #25355c', borderRadius: 9, width: 38, height: 38, margin: '2px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 7px #0003', fontWeight: 700, cursor: 'pointer', transition: 'background 0.18s, color 0.18s', zIndex: 2147483647
-          }}
-        >
-          {showLabels ? '👁️' : '🙈'}
-        </button>
+        <button title={showLabels ? "Cacher les noms des astres" : "Afficher les noms des astres"} aria-label={showLabels ? "Cacher les noms des astres" : "Afficher les noms des astres"} onClick={() => setShowLabels(v => !v)}>👁️</button>
       </div>
-      <Canvas
-        style={{ width: '100vw', height: '100vh', cursor: dragging.current ? 'grabbing' : 'grab' }}
-        onPointerDown={e => {
-          if (isUiHovered) return;
-          dragging.current = true;
-          lastMouse.current = { x: e.clientX, y: e.clientY };
-        }}
-        onPointerUp={() => { dragging.current = false; }}
-        onPointerOut={() => { dragging.current = false; }}
-        onPointerMove={e => {
-          if (dragging.current && !isUiHovered) {
-            setCameraCenter(c => ({
-              x: c.x - (e.movementX * zoom * 0.06),
-              y: c.y + (e.movementY * zoom * 0.06)
-            }));
-          }
-        }}
-      >
+      <Canvas style={{ width: '100vw', height: '100vh', cursor: dragging.current ? 'grabbing' : 'grab' }} onPointerDown={e => {
+        if (isUiHovered) return;
+        dragging.current = true;
+        lastMouse.current = { x: e.clientX, y: e.clientY };
+      }} onPointerUp={() => { dragging.current = false; }} onPointerOut={() => { dragging.current = false; }} onPointerMove={e => {
+        if (dragging.current && !isUiHovered) {
+          setCameraCenter(c => ({
+            x: c.x - (e.movementX * zoom * 0.06),
+            y: c.y + (e.movementY * zoom * 0.06)
+          }));
+        }
+      }}>
         <OrthographicCamera
           makeDefault
           position={[0, 0, 100]}
