@@ -175,6 +175,16 @@ canvas {
   position: relative;
 }
 
+.time-controls-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto;
+  gap: 2px;
+}
+
 @media (max-width: 600px) {
   .ui-badge {
     font-size: 0.97em;
@@ -207,6 +217,12 @@ canvas {
     height: 32px;
     font-size: 1.18em;
     border-radius: 8px;
+  }
+  .time-controls-row {
+    gap: 1.5vw;
+    min-width: unset !important;
+    max-width: 100vw !important;
+    padding: 0 2vw !important;
   }
 }
 

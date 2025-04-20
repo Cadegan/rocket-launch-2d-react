@@ -1105,7 +1105,6 @@ export default function App() {
           background: 'rgba(22,28,48,0.96)',
           borderRadius: '0 0 22px 22px',
           padding: '2px 3vw',
-          boxShadow: '0 10px 40px #000b',
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
@@ -1118,7 +1117,14 @@ export default function App() {
           opacity: uiFaded ? 0.38 : 1,
         }}
       >
-        <div style={{display:'inline-flex', alignItems:'center', gap: '2px'}}>
+        <div className="time-controls-row" style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          height: 'auto',
+        }}>
           <button
             onClick={handleDecreaseTimeSpeed}
             title="Diminuer la vitesse du temps"
@@ -1141,9 +1147,7 @@ export default function App() {
               cursor: 'pointer',
               padding: '2px 5px',
             }}
-          >
-            ⇠
-          </button>
+          >⇠</button>
           <input
             type="range"
             min="0.05"
@@ -1188,9 +1192,7 @@ export default function App() {
               cursor: 'pointer',
               padding: '2px 5px',
             }}
-          >
-            ⇢
-          </button>
+          >⇢</button>
           {/* BADGES VITESSE */}
           <span className="ui-badge" style={{
             background:'rgba(30,40,70,0.67)',
@@ -1249,16 +1251,14 @@ export default function App() {
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: 'none',
-              fontSize: '1.5em',
+              fontSize: '1.6em',
               color: '#7fd',
               transition: 'color 0.19s',
               outline: 'none',
               cursor: 'pointer',
               padding: '2px 5px',
             }}
-          >
-            ♻︎
-          </button>
+          >♻︎</button>
         </div>
         <ErrorBoundary>
           <SolarSystemOptions
