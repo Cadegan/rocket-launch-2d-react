@@ -1341,16 +1341,7 @@ export default function App() {
         </button>
       </div>
       <Canvas
-        style={{
-          width: '100vw',
-          height: '100vh',
-          display: 'block',
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          zIndex: 0,
-          cursor: dragging.current ? 'grabbing' : 'grab'
-        }}
+        style={{ width: '100vw', height: '100vh', cursor: dragging.current ? 'grabbing' : 'grab' }}
         onPointerDown={e => {
           if (isUiHovered) return;
           dragging.current = true;
