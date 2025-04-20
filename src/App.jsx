@@ -776,7 +776,7 @@ class ErrorBoundary extends React.Component {
 function SolarSystemOptions({ asteroids, onAddAsteroid, onRemoveAsteroid, startAddAsteroid, stopAddAsteroid, showLabels, onToggleLabels }) {
   // DEBUG: Log props to diagnose error
   if (typeof window !== 'undefined' && window.console) {
-    console.log('[SolarSystemOptions] props:', { asteroids, onAddAsteroid, onRemoveAsteroid, startAddAsteroid, stopAddAsteroid, showLabels, onToggleLabels });
+    // console.log('[SolarSystemOptions] props:', { asteroids, onAddAsteroid, onRemoveAsteroid, startAddAsteroid, stopAddAsteroid, showLabels, onToggleLabels });
   }
   // Style homogène avec le panneau principal UI
   return (
