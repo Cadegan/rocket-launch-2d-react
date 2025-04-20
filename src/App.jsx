@@ -1,3 +1,23 @@
+// -------------------------------------------------------
+// FONCTIONS DE DEBUG (désactivées/commentées)
+// -------------------------------------------------------
+
+/*
+// DEBUG: Affiche les positions des planètes à chaque frame dans la console
+function debugPlanetsPositions(planets) {
+  if (window && window.console) {
+    console.log('Positions planètes:', planets.map(p => ({ name: p.name, x: p.x, y: p.y })));
+  }
+}
+
+// DEBUG: Log props du panneau d’options du système solaire
+function debugSolarSystemOptionsProps(props) {
+  if (window && window.console) {
+    console.log('[SolarSystemOptions] props:', props);
+  }
+}
+*/
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrthographicCamera } from '@react-three/drei';
