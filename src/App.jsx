@@ -179,7 +179,7 @@ function PlanetRing({ x, y, innerRadius, outerRadius, color = '#fff', opacity = 
   );
 }
 
-function Planet({ color, orbit, size, speed, time, label, phase, moons = [], moonPhases = [], labelOpacity = 1, showLabels = true, gravityInfluence = 0, ecc, rings }) {
+function Planet({ color, orbit, size, speed, time, label, phase, moons = [], moonPhases = [], labelOpacity = 1, showLabels = true, gravityInfluence = 0, ecc, rings, spin = 0 }) {
   // Mouvement orbital avec phase initiale
   const angle = speed * time + phase;
   // Correction : utiliser la vraie excentricité
@@ -216,16 +216,16 @@ function Planet({ color, orbit, size, speed, time, label, phase, moons = [], moo
         <circleGeometry args={[size * 1.18, 40]} />
         <meshBasicMaterial map={atmTexture} transparent opacity={1} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
-      {/* Planète */}
-      <mesh position={[x, y, 0]}>
+      {/* Planète avec rotation dynamique */}
+      <mesh position={[x, y, 0]} rotation={[0, 0, spin]}>
         <circleGeometry args={[size, 32]} />
-        <meshBasicMaterial color={color} transparent opacity={1} depthWrite={true} side={THREE.FrontSide} />
+        <meshBasicMaterial color={color} />
       </mesh>
-      {/* Anneaux planétaires */}
+      {/* Anneaux */}
       {Array.isArray(rings) && rings.map((ring, i) => (
         <PlanetRing key={i} x={x} y={y} {...ring} />
       ))}
-      {/* Nom de la planète, en couleur */}
+      {/* Label */}
       {showLabels && (
         <Html position={[x, y + size + 0.7, 0]} center style={{ color: color, fontWeight: 'bold', fontSize: '0.85rem', textShadow: '1px 1px 3px #000', opacity: labelOpacity, userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', pointerEvents: 'none' }}>{label}</Html>
       )}
@@ -558,8 +558,27 @@ function SolarSystemView({ zoom, showLabels, timeSpeed, paused, asteroids, setAs
       moonPhases: p.moons ? p.moons.map(() => Math.random() * Math.PI * 2) : [],
     }));
   }, []);
+  const [planetSpins, setPlanetSpins] = React.useState(() =>
+    BASE_PLANETS.map(p => ({ spin: Math.random() * Math.PI * 2, spinSpeed: 0.015 + Math.random() * 0.01 }))
+  );
   useFrame((_, delta) => {
     if (!paused) setTime(t => t + delta * timeSpeed);
+    // --- Ajout : mise à jour des spins dynamiques ---
+    if (!paused) {
+      setPlanetSpins(spins => spins.map((spinObj, i) => {
+        const planet = BASE_PLANETS[i];
+        const targetSync = computeTidalSyncSpeed(planet);
+        const tidalFactor = computeTidalFactor(planet);
+        // La vitesse de rotation tend vers la synchronisation
+        const newSpinSpeed = spinObj.spinSpeed + (- (spinObj.spinSpeed - targetSync) * tidalFactor * delta);
+        // Mise à jour de l'angle
+        let newSpin = spinObj.spin + newSpinSpeed * delta * timeSpeed;
+        // Garde l'angle entre 0 et 2PI
+        if (newSpin > Math.PI * 2) newSpin -= Math.PI * 2;
+        if (newSpin < 0) newSpin += Math.PI * 2;
+        return { spin: newSpin, spinSpeed: newSpinSpeed };
+      }));
+    }
   });
   const planetsWithPos = React.useMemo(() => {
     const result = planets.map(p => {
@@ -625,13 +644,14 @@ function SolarSystemView({ zoom, showLabels, timeSpeed, paused, asteroids, setAs
         <circleGeometry args={[4, 64]} />
         <meshBasicMaterial color="#ffe066" />
       </mesh>
-      {planetsWithPos.map((p) => (
+      {planetsWithPos.map((p, idx) => (
         <React.Fragment key={p.name}>
           {/* Affiche l'orbite uniquement si la planète est Mercure, Vénus, Terre, Mars, Jupiter, Saturne, Uranus ou Neptune */}
           {['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune'].includes(p.name) && (
             <Orbit cx={0} cy={0} radius={p.orbit} ecc={p.ecc} phase={p.phase} />
           )}
-          <Planet {...p} time={time} label={p.name} labelOpacity={labelOpacity} showLabels={showLabels} />
+          {/* Ajout : passage de la rotation dynamique */}
+          <Planet {...p} time={time} label={p.name} labelOpacity={labelOpacity} showLabels={showLabels} spin={planetSpins[idx]?.spin || 0} />
         </React.Fragment>
       ))}
       {/* Astéroïdes dynamiques */}
@@ -876,6 +896,20 @@ function useContinuousAction(action, delay = 120) {
   }, []);
   React.useEffect(() => () => stop(), [stop]);
   return [start, stop];
+}
+
+// --- Ajout pour rotation dynamique réaliste des planètes ---
+function computeTidalSyncSpeed(planet) {
+  // Vitesse de rotation synchrone (1 rotation par révolution)
+  // = vitesse orbitale (rad/frame)
+  return planet.speed;
+}
+function computeTidalFactor(planet) {
+  // Facteur de synchronisation : plus la planète est proche du Soleil, plus la synchronisation est rapide
+  // On utilise une formule simplifiée : factor ∝ 1 / (distance^6) (effet de marée)
+  // On ajoute un facteur multiplicatif pour ajuster la vitesse de convergence
+  const a = planet.orbit;
+  return 0.0004 / Math.pow(a, 6);
 }
 
 export default function App() {
